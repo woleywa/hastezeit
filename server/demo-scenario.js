@@ -10,11 +10,12 @@ const FRIENDS = [
   { key: 'sophie', name: 'Sophie', emoji: '🧗', color: '#f06292' },
   { key: 'can', name: 'Can', emoji: '🎲', color: '#4db6ac' },
   { key: 'mia', name: 'Mia', emoji: '🎬', color: '#ba68c8' },
+  { key: 'mike', name: 'Mike', emoji: '🏀', color: '#ffb74d' },
 ];
 
 const GROUPS = [
-  { key: 'crew', name: 'Berlin Crew', emoji: '🐻', members: ['wolfgang', 'anna', 'max', 'lisa', 'jonas', 'sophie', 'can', 'mia'] },
-  { key: 'tennis', name: 'Tennis', emoji: '🎾', members: ['wolfgang', 'anna', 'max', 'jonas', 'sophie'] },
+  { key: 'crew', name: 'Berlin Crew', emoji: '🐻', members: ['wolfgang', 'anna', 'max', 'lisa', 'jonas', 'sophie', 'can', 'mia', 'mike'] },
+  { key: 'tennis', name: 'Tennis', emoji: '🎾', members: ['wolfgang', 'anna', 'max', 'jonas', 'sophie', 'mike'] },
   { key: 'uni', name: 'Uni Freunde', emoji: '🎓', members: ['anna', 'lisa', 'can', 'mia', 'wolfgang'] },
 ];
 
@@ -213,6 +214,9 @@ export async function seedScenario(s, { tz = 'Europe/Berlin', now = new Date() }
   for (const who of ['lisa', 'sophie']) free(who, 2, 'afternoon');
   for (const who of ['can', 'lisa', 'wolfgang']) free(who, 3, 'evening');
   free('wolfgang', 4, 'evening');
+  free('mike', 4, 'evening'); // → Runde „Du & Mike“
+  free('mike', 1, 'evening'); // → Mike kommt in die große Runde morgen Abend
+  free('mike', 5, 'morning');
   for (const who of ['max', 'jonas']) free(who, 5, 'morning');
   for (const who of ['anna', 'sophie', 'jonas', 'can', 'mia']) free(who, 6, 'afternoon');
   free('anna', 4, 'afternoon');
@@ -221,6 +225,21 @@ export async function seedScenario(s, { tz = 'Europe/Berlin', now = new Date() }
   say('anna', 1, 'evening', 'Yes, wir sind schon vier! Lust auf Burger? 🍔');
   say('max', 1, 'evening', 'Immer. Oder Kicker in der Kneipe?');
   say('mia', 1, 'evening', 'Burger + danach Kicker 😄');
+  say('mike', 1, 'evening', 'Bin auch dabei! Kenn nen guten Burgerladen in Friedrichshain 🍔');
+
+  // Mike – Basketball on the weekend
+  join('mike', bike, 'maybe');
+  const hoops = post('mike', {
+    type: 'activity',
+    title: 'Basketball',
+    description: 'Lockeres 3 gegen 3, Ball bring ich mit.',
+    startsAt: next(6, '16:00'),
+    location: 'Mauerpark, Basketballplatz',
+    capacity: 5,
+    groups: ['crew'],
+  });
+  join('max', hoops, 'going');
+  join('jonas', hoops, 'maybe');
 
   return { users: u, groups: g, posts: { mia, lisaHelp, tennis, anna, bar, couch, bike } };
 }

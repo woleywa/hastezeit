@@ -47,7 +47,7 @@ test('unauthenticated access is rejected, demo login works', async () => {
   const c = client();
   assert.equal((await c('GET', '/api/posts')).status, 401);
   const me = await c('GET', '/api/me');
-  assert.equal(me.data.demoUsers.length, 8);
+  assert.equal(me.data.demoUsers.length, 9);
   const login = await c('POST', '/api/auth/demo', { userId: seed.users.wolfgang.id });
   assert.equal(login.data.user.name, 'Wolfgang');
   const feed = await c('GET', '/api/posts');

@@ -412,7 +412,7 @@ img { max-width: 100%; }
 .pillars { display: grid; gap: 10px; margin: 0 0 28px; }
 .pillar { display: flex; align-items: center; gap: 12px; background: var(--tone-soft); color: var(--tone-ink); border-radius: 18px; padding: 12px 14px; font-weight: 700; }
 .pillar .p-emoji { font-size: 24px; }
-.demo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.demo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .demo-grid button { border: 0; background: var(--surface); border-radius: 18px; padding: 12px 4px; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; }
 .divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; margin: 26px 0 18px; font-weight: 600; }
 .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }

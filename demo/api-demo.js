@@ -11,7 +11,7 @@ import { seedScenario } from '../server/demo-scenario.js';
 
 export { ApiError };
 
-const KEY = 'bock-web-demo-v2';
+const KEY = 'bock-web-demo-v3'; // bump when the demo scenario changes → visitors get a fresh seed
 const TZ = 'Europe/Berlin';
 const RESEED_AFTER_MS = 3 * 86400_000; // keep the demo week current
 const HOUR = 3600_000;
