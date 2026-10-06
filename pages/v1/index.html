@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7f4ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151318" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bock">
+<meta property="og:title" content="Bock – Zeit mit Freunden">
+<meta property="og:description" content="Wer hat Zeit? Wer hat Bock? Wer braucht Hilfe?">
+<meta property="og:image" content="icons/og.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+</head>
+<body>
+<title>Bock</title>
+<meta name="description" content="Wer hat Zeit? Wer hat Bock? Wer braucht Hilfe? Demo der privaten Freundeskreis-App.">
+<style>/* Bock – mobile-first design system. No framework, no web fonts (fast + GDPR-friendly). */
+
+:root {
+  --bg: #f7f4ef;
+  --surface: #ffffff;
+  --surface-2: #f1ede6;
+  --ink: #1d1a22;
+  --muted: #706a7a;
+  --line: #e9e3da;
+  --shadow: 0 1px 2px rgba(29, 26, 34, .04), 0 6px 22px rgba(29, 26, 34, .06);
+
+  --time: #0f9f6e;
+  --time-soft: #e2f6ed;
+  --time-ink: #0a6b4b;
+  --activity: #6d4aff;
+  --activity-soft: #eee9ff;
+  --activity-ink: #4b2fd1;
+  --help: #f26b1d;
+  --help-soft: #fff0e5;
+  --help-ink: #b5470b;
+  --danger: #e5484d;
+  --error-bg: #fde8e8;
+  --error-fg: #9b1c1c;
+
+  --radius: 22px;
+  --radius-sm: 14px;
+  --tap: 48px;
+  --nav-h: 68px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151318;
+    --surface: #211e26;
+    --surface-2: #2a2630;
+    --ink: #f4f1f8;
+    --muted: #a7a0b2;
+    --line: #34303b;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    --time-soft: #133429;
+    --time-ink: #5fe0ad;
+    --activity-soft: #282042;
+    --activity-ink: #b4a3ff;
+    --help-soft: #3a2416;
+    --help-ink: #ffaa73;
+    --error-bg: #3b1717;
+    --error-fg: #ffb4b4;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+    --bg: #151318;
+    --surface: #211e26;
+    --surface-2: #2a2630;
+    --ink: #f4f1f8;
+    --muted: #a7a0b2;
+    --line: #34303b;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    --time-soft: #133429;
+    --time-ink: #5fe0ad;
+    --activity-soft: #282042;
+    --activity-ink: #b4a3ff;
+    --help-soft: #3a2416;
+    --help-ink: #ffaa73;
+    --error-bg: #3b1717;
+    --error-fg: #ffb4b4;
+    color-scheme: dark;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  overscroll-behavior-y: none;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: inherit; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+
+.view {
+  max-width: 560px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  padding: calc(var(--safe-t) + 8px) 16px calc(var(--nav-h) + var(--safe-b) + 28px);
+}
+.view.no-nav { padding-bottom: calc(var(--safe-b) + 110px); }
+
+.splash { min-height: 80dvh; display: grid; place-items: center; }
+.splash-logo { font-size: 64px; animation: pop 1s ease-in-out infinite alternate; }
+@keyframes pop { from { transform: scale(.9) rotate(-8deg); } to { transform: scale(1.05) rotate(8deg); } }
+
+/* ---------- Header ---------- */
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0 6px;
+  min-height: 56px;
+}
+.topbar h1 { font-size: 26px; line-height: 1.1; margin: 0; letter-spacing: -.02em; flex: 1; }
+.topbar .sub { color: var(--muted); font-size: 14px; margin-top: 2px; font-weight: 500; }
+.topbar .title-wrap { flex: 1; min-width: 0; }
+.topbar.compact h1 { font-size: 20px; }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: inline-grid; place-items: center;
+  border: 0; background: var(--surface); box-shadow: var(--shadow);
+  font-size: 20px; position: relative; flex: none; text-decoration: none;
+}
+.icon-btn.plain { background: transparent; box-shadow: none; }
+.badge-dot {
+  position: absolute; top: 4px; right: 4px; min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 9px; background: var(--danger); color: #fff; font-size: 11px; font-weight: 800;
+  display: grid; place-items: center; border: 2px solid var(--bg);
+}
+
+/* ---------- Quick actions ---------- */
+.quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 18px; }
+.quick button {
+  border: 0; border-radius: 20px; padding: 14px 6px 12px; min-height: 86px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  font-weight: 750; font-size: 14px; line-height: 1.15;
+  transition: transform .12s ease;
+}
+.quick button:active { transform: scale(.96); }
+.quick .q-emoji { font-size: 26px; line-height: 1; }
+.quick .time { background: var(--time-soft); color: var(--time-ink); }
+.quick .activity { background: var(--activity-soft); color: var(--activity-ink); }
+.quick .help { background: var(--help-soft); color: var(--help-ink); }
+
+/* ---------- Chips / filters ---------- */
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 16px 4px; margin: 0 -16px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  border-radius: 999px; padding: 0 14px; height: 38px; font-size: 14px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip.tone-time.on { background: var(--time); border-color: var(--time); color: #fff; }
+.chip.tone-activity.on { background: var(--activity); border-color: var(--activity); color: #fff; }
+.chip.tone-help.on { background: var(--help); border-color: var(--help); color: #fff; }
+.chip.small { height: 30px; padding: 0 10px; font-size: 13px; }
+
+/* ---------- Day sections ---------- */
+.day-head {
+  display: flex; align-items: baseline; gap: 8px;
+  margin: 22px 4px 10px; font-weight: 800; font-size: 15px;
+}
+.day-head .muted { font-weight: 500; font-size: 13px; }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 16px; margin-bottom: 12px; position: relative; overflow: hidden;
+  cursor: pointer;
+}
+.card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--tone); }
+.tone-time { --tone: var(--time); --tone-soft: var(--time-soft); --tone-ink: var(--time-ink); }
+.tone-activity { --tone: var(--activity); --tone-soft: var(--activity-soft); --tone-ink: var(--activity-ink); }
+.tone-help { --tone: var(--help); --tone-soft: var(--help-soft); --tone-ink: var(--help-ink); }
+
+.kicker {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11.5px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--tone-ink); background: var(--tone-soft); padding: 4px 9px; border-radius: 999px;
+}
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.card-groups { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-title { display: flex; gap: 12px; align-items: flex-start; }
+.card-emoji {
+  flex: none; width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center;
+  font-size: 26px; background: var(--tone-soft);
+}
+.card-title h3 { margin: 0; font-size: 19px; line-height: 1.2; letter-spacing: -.01em; }
+.card-meta { color: var(--muted); font-size: 14px; margin-top: 3px; font-weight: 500; }
+.card-meta strong { color: var(--ink); font-weight: 700; }
+.card-desc { margin: 10px 0 0; font-size: 15px; }
+.card-loc { margin-top: 6px; font-size: 14px; color: var(--muted); }
+.card-foot { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.card-foot .spacer { flex: 1; }
+.comment-count { color: var(--muted); font-size: 14px; font-weight: 600; display: inline-flex; gap: 4px; align-items: center; padding: 0 4px; }
+
+.people { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; color: var(--muted); }
+.people strong { color: var(--ink); font-weight: 650; }
+
+.progress { margin-top: 12px; }
+.progress-bar { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.progress-bar > span { display: block; height: 100%; background: var(--tone); border-radius: 99px; transition: width .3s; }
+.progress-label { font-size: 13px; color: var(--muted); margin-top: 6px; font-weight: 600; }
+.progress-label.done { color: var(--tone-ink); }
+
+.ideas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.idea { background: var(--tone-soft); color: var(--tone-ink); font-size: 13px; font-weight: 650; border-radius: 999px; padding: 5px 10px; }
+
+/* ---------- Avatars ---------- */
+.avatar {
+  --size: 32px;
+  width: var(--size); height: var(--size); border-radius: 50%; flex: none;
+  display: inline-grid; place-items: center; font-size: calc(var(--size) * .52); font-weight: 800; color: #fff;
+  background: var(--c, #999); box-shadow: 0 0 0 2px var(--surface);
+}
+.avatar.lg { --size: 84px; }
+.avatar.md { --size: 40px; }
+.avatar.sm { --size: 26px; }
+.avatar-stack { display: inline-flex; }
+.avatar-stack .avatar + .avatar { margin-left: -8px; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  border: 0; border-radius: 16px; min-height: var(--tap); padding: 0 18px;
+  font-weight: 750; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--tone, var(--ink)); color: #fff; text-decoration: none;
+  transition: transform .1s ease, opacity .2s;
+}
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .45; }
+.btn.block { width: 100%; }
+.btn.soft { background: var(--tone-soft, var(--surface-2)); color: var(--tone-ink, var(--ink)); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.btn.dark { background: var(--ink); color: var(--bg); }
+.btn.whatsapp { background: #25d366; color: #fff; }
+.btn.danger { background: transparent; color: var(--danger); border: 1.5px solid var(--line); }
+.btn.sm { min-height: 40px; font-size: 14px; padding: 0 14px; border-radius: 13px; }
+.btn.lg { min-height: 56px; font-size: 17px; border-radius: 18px; }
+
+/* ---------- Tabbar ---------- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  height: calc(var(--nav-h) + var(--safe-b)); padding-bottom: var(--safe-b);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: saturate(1.6) blur(16px); -webkit-backdrop-filter: saturate(1.6) blur(16px);
+  border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(5, 1fr); align-items: center;
+}
+.tab {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font-size: 11px; font-weight: 650; color: var(--muted); text-decoration: none; height: 100%; justify-content: center;
+  position: relative;
+}
+.tab .t-icon { font-size: 22px; line-height: 1; filter: grayscale(1); opacity: .7; }
+.tab.on { color: var(--ink); }
+.tab.on .t-icon { filter: none; opacity: 1; }
+.tab-plus { display: grid; place-items: center; }
+.tab-plus button {
+  width: 60px; height: 60px; border-radius: 22px; border: 0; margin-top: -26px;
+  background: conic-gradient(from 210deg, var(--time), var(--activity), var(--help), var(--time));
+  color: #fff; font-size: 34px; font-weight: 400; line-height: 1;
+  box-shadow: 0 8px 22px rgba(109, 74, 255, .35); display: grid; place-items: center;
+  transition: transform .12s ease;
+}
+.tab-plus button:active { transform: scale(.92) rotate(90deg); }
+
+/* ---------- Sheet ---------- */
+.sheet-backdrop {
+  position: fixed; inset: 0; background: rgba(15, 12, 20, .45); z-index: 40;
+  animation: fade .18s ease;
+}
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 92dvh; overflow-y: auto;
+  background: var(--bg); border-radius: 28px 28px 0 0; padding: 10px 16px calc(var(--safe-b) + 20px);
+  max-width: 560px; margin: 0 auto; animation: up .24s cubic-bezier(.2, .9, .3, 1.1);
+}
+.sheet-grip { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 14px; }
+.sheet h2 { margin: 4px 4px 16px; font-size: 22px; letter-spacing: -.01em; }
+@keyframes up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+.choice {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+  border: 0; border-radius: 20px; padding: 16px; margin-bottom: 10px; text-align: left;
+  background: var(--tone-soft); color: var(--tone-ink);
+}
+.choice .c-emoji { font-size: 30px; width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; background: var(--surface); flex: none; }
+.choice strong { display: block; font-size: 18px; color: var(--ink); }
+.choice span { font-size: 14px; }
+
+/* ---------- Forms ---------- */
+.form { display: flex; flex-direction: column; gap: 18px; }
+.field label, .label { display: block; font-size: 13px; font-weight: 750; color: var(--muted); margin: 0 4px 8px; text-transform: uppercase; letter-spacing: .05em; }
+.input, .textarea {
+  width: 100%; border: 1.5px solid var(--line); background: var(--surface); border-radius: var(--radius-sm);
+  min-height: 52px; padding: 12px 14px; font-size: 17px; outline: none;
+}
+.input:focus, .textarea:focus { border-color: var(--tone, var(--activity)); }
+.input.big { font-size: 21px; font-weight: 650; min-height: 60px; }
+.textarea { min-height: 84px; resize: vertical; }
+.row { display: flex; gap: 10px; align-items: center; }
+.row > * { flex: 1; min-width: 0; }
+.time-input { text-align: center; font-weight: 700; }
+.row .sep { flex: none; color: var(--muted); font-weight: 700; }
+.hint { font-size: 13px; color: var(--muted); margin: 6px 4px 0; }
+.parsed {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; font-size: 13px; font-weight: 650;
+  color: var(--tone-ink); animation: fade .2s;
+}
+.parsed span { background: var(--tone-soft); border-radius: 999px; padding: 4px 10px; }
+.link-btn { background: none; border: 0; padding: 8px 4px; font-weight: 700; color: var(--tone-ink, var(--activity-ink)); font-size: 15px; }
+.segmented { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface-2); border-radius: 16px; padding: 4px; gap: 4px; }
+.segmented button { border: 0; background: transparent; border-radius: 12px; min-height: 46px; font-weight: 700; font-size: 15px; color: var(--muted); }
+.segmented button.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.stepper { display: inline-flex; align-items: center; gap: 4px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 16px; padding: 4px; }
+.stepper button { width: 44px; height: 44px; border: 0; border-radius: 12px; background: var(--surface-2); font-size: 22px; font-weight: 700; }
+.stepper output { min-width: 44px; text-align: center; font-size: 20px; font-weight: 800; }
+.sticky-cta {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 15;
+  padding: 12px 16px calc(var(--safe-b) + 12px);
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+}
+.sticky-cta > * { max-width: 528px; margin: 0 auto; display: flex; }
+.error-box { background: var(--error-bg); color: var(--error-fg); border-radius: 14px; padding: 12px 14px; font-size: 14px; font-weight: 600; }
+
+/* ---------- Detail ---------- */
+.hero { background: var(--tone-soft); border-radius: 28px; padding: 22px 18px 20px; margin-top: 4px; }
+.hero .emoji { font-size: 54px; line-height: 1; margin: 12px 0 10px; }
+.hero h1 { margin: 0 0 12px; font-size: 28px; line-height: 1.12; letter-spacing: -.02em; }
+.hero .when { font-size: 18px; font-weight: 800; }
+.hero .meta-line { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-size: 15px; }
+.hero .meta-line a { text-decoration: none; color: var(--tone-ink); font-weight: 650; }
+.hero .desc { margin: 14px 0 0; font-size: 16px; }
+.actions { display: flex; gap: 8px; margin: 16px 0 4px; flex-wrap: wrap; }
+.actions .btn { flex: 1 1 0; min-width: 0; }
+.status-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0 4px; }
+.status-row .btn { padding: 0 6px; font-size: 15px; }
+.status-row .btn:not(.on) { background: var(--surface); color: var(--ink); border: 1.5px solid var(--line); }
+.status-row .btn.on { background: var(--tone); color: #fff; }
+
+.section { margin-top: 26px; }
+.section-title { font-size: 13px; font-weight: 800; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin: 0 4px 10px; display: flex; justify-content: space-between; }
+.list { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.list-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-height: 56px; text-decoration: none; }
+.list-item + .list-item { border-top: 1px solid var(--line); }
+.list-item .grow { flex: 1; min-width: 0; }
+.list-item .title { font-weight: 700; }
+.list-item .sub { color: var(--muted); font-size: 13px; }
+.tag { font-size: 12px; font-weight: 750; border-radius: 999px; padding: 3px 9px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+.tag.yes { background: var(--tone-soft); color: var(--tone-ink); }
+
+.comment { display: flex; gap: 10px; margin-bottom: 14px; }
+.bubble { background: var(--surface); border-radius: 6px 18px 18px 18px; padding: 9px 13px; box-shadow: var(--shadow); max-width: 100%; }
+.bubble .who { font-size: 13px; font-weight: 750; }
+.bubble .who .muted { font-weight: 500; }
+.bubble p { margin: 2px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.bubble.suggestion { background: var(--tone-soft); border: 1.5px dashed var(--tone); }
+.composer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 15;
+  padding: 10px 12px calc(var(--safe-b) + 10px); background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--line);
+}
+.composer form { max-width: 536px; margin: 0 auto; display: flex; gap: 8px; }
+.composer .input { min-height: 48px; border-radius: 24px; font-size: 16px; }
+.composer button { width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--tone, var(--ink)); color: #fff; font-size: 20px; flex: none; }
+
+.banner {
+  background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; margin: 12px 0;
+  border: 2px solid var(--tone);
+}
+.banner h3 { margin: 0 0 4px; font-size: 18px; }
+.banner p { margin: 0 0 14px; color: var(--muted); font-size: 15px; }
+
+/* ---------- Week ---------- */
+.week-nav { display: flex; align-items: center; gap: 8px; margin: 6px 0 12px; }
+.week-nav .range { flex: 1; text-align: center; font-weight: 800; }
+.week-day { display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.week-day.today .wd-label { background: var(--ink); color: var(--bg); }
+.wd-label { border-radius: 16px; text-align: center; padding: 6px 0; align-self: start; background: var(--surface); box-shadow: var(--shadow); }
+.wd-label .wd { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; opacity: .7; }
+.wd-label .dn { font-size: 20px; font-weight: 850; line-height: 1.1; }
+.week-items { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.w-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; text-decoration: none;
+  background: var(--tone-soft); border-left: 4px solid var(--tone); min-height: 48px;
+}
+.w-item .w-time { font-size: 13px; font-weight: 800; color: var(--tone-ink); min-width: 42px; }
+.w-item .w-main { flex: 1; min-width: 0; }
+.w-item .w-title { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w-item .w-sub { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w-item.mine { box-shadow: inset 0 0 0 2px var(--tone); }
+.w-empty { color: var(--muted); font-size: 14px; padding: 12px 4px; display: flex; justify-content: space-between; align-items: center; }
+.w-empty a { color: var(--time-ink); font-weight: 700; text-decoration: none; }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); margin: 4px 4px 0; font-weight: 600; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--tone); margin-right: 5px; vertical-align: -1px; }
+
+/* ---------- Groups / profile ---------- */
+.group-card { display: flex; align-items: center; gap: 14px; }
+.group-emoji { width: 56px; height: 56px; border-radius: 18px; background: var(--surface-2); display: grid; place-items: center; font-size: 30px; flex: none; }
+.group-card .grow { flex: 1; min-width: 0; }
+.group-card h3 { margin: 0 0 4px; font-size: 18px; }
+.card.plain::before { display: none; }
+.emoji-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.emoji-pick button { width: 48px; height: 48px; border-radius: 14px; border: 2px solid transparent; background: var(--surface); font-size: 24px; }
+.emoji-pick button.on { border-color: var(--ink); }
+.color-pick { display: flex; gap: 10px; flex-wrap: wrap; }
+.color-pick button { width: 40px; height: 40px; border-radius: 50%; border: 3px solid transparent; background: var(--c); }
+.color-pick button.on { border-color: var(--ink); }
+.profile-head { text-align: center; padding: 18px 0 8px; }
+.profile-head h1 { margin: 12px 0 2px; font-size: 26px; }
+
+/* ---------- Auth / welcome ---------- */
+.welcome { padding-top: 6dvh; }
+.logo-big { font-size: 64px; line-height: 1; }
+.welcome h1 { font-size: 40px; margin: 12px 0 8px; letter-spacing: -.03em; }
+.welcome .tagline { font-size: 19px; color: var(--muted); margin: 0 0 24px; line-height: 1.35; }
+.pillars { display: grid; gap: 10px; margin: 0 0 28px; }
+.pillar { display: flex; align-items: center; gap: 12px; background: var(--tone-soft); color: var(--tone-ink); border-radius: 18px; padding: 12px 14px; font-weight: 700; }
+.pillar .p-emoji { font-size: 24px; }
+.demo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.demo-grid button { border: 0; background: var(--surface); border-radius: 18px; padding: 12px 4px; box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; }
+.divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; margin: 26px 0 18px; font-weight: 600; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+/* ---------- Misc ---------- */
+.muted { color: var(--muted); }
+.center { text-align: center; }
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+.empty .e-emoji { font-size: 48px; margin-bottom: 8px; }
+.empty h3 { color: var(--ink); margin: 0 0 6px; }
+.toast-wrap { position: fixed; left: 0; right: 0; bottom: calc(var(--nav-h) + var(--safe-b) + 14px); z-index: 60; display: flex; justify-content: center; pointer-events: none; padding: 0 16px; }
+.toast { background: var(--ink); color: var(--bg); border-radius: 16px; padding: 12px 16px; font-weight: 650; font-size: 15px; box-shadow: 0 10px 30px rgba(0,0,0,.2); display: flex; gap: 12px; align-items: center; pointer-events: auto; animation: up .2s ease; }
+.toast button { background: none; border: 0; color: var(--bg); font-weight: 800; text-decoration: underline; padding: 4px; }
+.notif { display: flex; gap: 12px; padding: 14px; align-items: flex-start; text-decoration: none; }
+.notif + .notif { border-top: 1px solid var(--line); }
+.notif.unread { background: color-mix(in srgb, var(--activity-soft) 60%, transparent); }
+.notif .n-text { flex: 1; font-size: 15px; }
+.notif .n-time { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.install-tip { background: var(--surface); border-radius: 18px; padding: 14px; font-size: 14px; color: var(--muted); box-shadow: var(--shadow); }
+.share-preview { background: var(--surface-2); border-radius: 16px; padding: 12px 14px; font-size: 14px; white-space: pre-wrap; margin-bottom: 14px; color: var(--ink); }
+.stack > * + * { margin-top: 10px; }
+</style>
+<div id="app">
+  <main id="view" class="view" aria-live="polite"><div class="splash"><div class="splash-logo">🤙</div></div></main>
+  <nav id="tabbar" class="tabbar" hidden></nav>
+</div>
+<div id="sheet-root"></div>
+<div id="toast-root" aria-live="assertive"></div>
+<script>(()=>{var ce=class extends Error{constructor(t,a){super(a),this.status=t}};var xt=["availability","activity","help_request","help_offer"],B={availability:{label:"Freie Zeit",emoji:"👋",tone:"time"},activity:{label:"Aktivität",emoji:"🎯",tone:"activity"},help_request:{label:"Hilfe gesucht",emoji:"🙋",tone:"help"},help_offer:{label:"Hilfe angeboten",emoji:"🤝",tone:"help"}},At={availability:["free"],activity:["going","maybe","declined"],help_request:["helping"],help_offer:["accepting"]};var N={availability:"free",activity:"going",help_request:"helping",help_offer:"accepting"};var Me=["🍺 Bier","🍜 Essen gehen","☕ Kaffee","🎬 Kino","🏃 Sport","🎲 Spieleabend","🚶 Spazieren","🛋 Chillen"],he=["#ff8a65","#ba68c8","#4fc3f7","#81c784","#ffd54f","#f06292","#7986cb","#4db6ac"],ee={title:120,description:1e3,location:120,comment:1e3,idea:30,ideas:6,groupName:40,userName:40,capacity:999};var oa=[[/tennis|padel/,"🎾"],[/fu(ss|ß)ball|kicken/,"⚽"],[/basketball/,"🏀"],[/volleyball|beachvolleyball/,"🏐"],[/tischtennis|ping ?pong/,"🏓"],[/boulder|kletter/,"🧗"],[/schwimm|baden|see\b|strandbad/,"🏊"],[/lauf|joggen|run/,"🏃"],[/fahrrad|radtour|rad\b|bike/,"🚲"],[/wander|hike/,"🥾"],[/yoga/,"🧘"],[/gym|fitness|training/,"💪"],[/bier|bar\b|kneipe|späti|drinks?|cocktail/,"🍺"],[/wein/,"🍷"],[/kaffee|coffee|café|cafe/,"☕"],[/brunch|frühstück/,"🥐"],[/pizza/,"🍕"],[/burger/,"🍔"],[/sushi/,"🍣"],[/ramen|essen|dinner|abendessen|restaurant|vietnames|thai|döner/,"🍜"],[/grill|bbq/,"🔥"],[/kochen/,"🧑‍🍳"],[/kino|film|movie/,"🎬"],[/konzert|gig|festival|musik/,"🎵"],[/party|feiern|geburtstag|club/,"🎉"],[/spiel|brettspiel|poker|kartenspiel|spieleabend/,"🎲"],[/museum|ausstellung|galerie/,"🖼️"],[/theater/,"🎭"],[/couch|sofa|möbel/,"🛋"],[/umzug|kartons|kisten|transport/,"📦"],[/auto|fahren|transporter/,"🚗"],[/ikea|aufbau|aufbauen|regal|bohren|werkzeug/,"🔧"],[/garten|pflanzen|blumen/,"🌱"],[/hund|gassi/,"🐕"],[/katze/,"🐈"],[/kinder|babysit/,"👶"],[/laptop|computer|pc|wlan|handy/,"💻"],[/lernen|nachhilfe|bewerbung/,"📚"],[/flughafen|bahnhof|abholen/,"🧳"],[/spazier|park/,"🚶"],[/picknick/,"🧺"],[/chill|abhängen/,"🛋"]];function le(e="",t="activity"){let a=String(e).toLowerCase();for(let[n,i]of oa)if(n.test(a))return i;return B[t]?.emoji??"✨"}var ne=e=>String(e).padStart(2,"0");function It(e,t){let a=new Intl.DateTimeFormat("en-US",{timeZone:t,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).formatToParts(e),n=Object.fromEntries(a.map(s=>[s.type,s.value]));return Date.UTC(+n.year,+n.month-1,+n.day,+n.hour,+n.minute,+n.second)-Math.floor(e.getTime()/1e3)*1e3}function Se(e,t="00:00",a){let[n,i,s]=e.split("-").map(Number),[c,d]=t.split(":").map(Number);if(!a)return new Date(n,i-1,s,c,d);let l=Date.UTC(n,i-1,s,c,d),m=It(new Date(l),a),g=l-m,k=It(new Date(g),a);return k!==m&&(g=l-k),new Date(g)}function O(e,t){let a=e instanceof Date?e:new Date(e);if(!t)return{date:`${a.getFullYear()}-${ne(a.getMonth()+1)}-${ne(a.getDate())}`,time:`${ne(a.getHours())}:${ne(a.getMinutes())}`,weekday:a.getDay()};let n=new Intl.DateTimeFormat("en-US",{timeZone:t,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",weekday:"short"}).formatToParts(a),i=Object.fromEntries(n.map(c=>[c.type,c.value])),s=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(i.weekday);return{date:`${i.year}-${i.month}-${i.day}`,time:`${i.hour}:${i.minute}`,weekday:s}}function P(e,t){let[a,n,i]=e.split("-").map(Number),s=new Date(Date.UTC(a,n-1,i+t));return`${s.getUTCFullYear()}-${ne(s.getUTCMonth()+1)}-${ne(s.getUTCDate())}`}function de(e){let[t,a,n]=e.split("-").map(Number);return new Date(Date.UTC(t,a-1,n)).getUTCDay()}function Tt(e,t){let a=Date.parse(`${e}T00:00:00Z`),n=Date.parse(`${t}T00:00:00Z`);return Math.round((n-a)/864e5)}function Ce(e,t=0){let a=Number(e),n=Number(t);return!Number.isInteger(a)||!Number.isInteger(n)||a<0||a>24||n<0||n>59?null:`${ne(a===24?0:a)}:${ne(n)}`}var Xe=["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"],ke=["So","Mo","Di","Mi","Do","Fr","Sa"],ra=["Jan","Feb","März","Apr","Mai","Juni","Juli","Aug","Sep","Okt","Nov","Dez"];function Ne(e,{now:t=new Date,tz:a}={}){let n=O(e,a),i=O(t,a).date,s=Tt(i,n.date);if(s===0)return"Heute";if(s===1)return"Morgen";if(s===-1)return"Gestern";if(s>1&&s<7)return Xe[n.weekday];let[,c,d]=n.date.split("-").map(Number);return`${ke[n.weekday]}, ${d}. ${ra[c-1]}`}function Je(e,t){return O(e,t).time}function Qe(e,t,a){let n=Je(e,a);return t?`${n}–${Je(t,a)}`:n}function pe(e,t,a={}){return`${Ne(e,a)} · ${Qe(e,t,a.tz)}`}function Et(e,t,a={}){let n=s=>{let[c,d]=Je(s,a.tz).split(":");return d==="00"?String(Number(c)):`${Number(c)}:${d}`},i=t?`${n(e)}–${n(t)} Uhr`:`${n(e)} Uhr`;return`${Ne(e,a)} ${i}`}function _(e=""){return String(e).trim().split(/\s+/)[0]||e}function Pe(e,t=2){let a=e.map(_);return a.length===0?"":a.length===1?a[0]:a.length<=t?`${a.slice(0,-1).join(", ")} & ${a[a.length-1]}`:`${a.slice(0,t).join(", ")} & ${a.length-t} weitere`}var ca=[{key:"wolfgang",name:"Wolfgang",emoji:"😎",color:"#7986cb"},{key:"anna",name:"Anna",emoji:"🌻",color:"#ff8a65"},{key:"max",name:"Max",emoji:"💪",color:"#4fc3f7"},{key:"lisa",name:"Lisa",emoji:"🚲",color:"#81c784"},{key:"jonas",name:"Jonas",emoji:"🎸",color:"#ffd54f"},{key:"sophie",name:"Sophie",emoji:"🧗",color:"#f06292"},{key:"can",name:"Can",emoji:"🎲",color:"#4db6ac"},{key:"mia",name:"Mia",emoji:"🎬",color:"#ba68c8"}],la=[{key:"crew",name:"Berlin Crew",emoji:"🐻",members:["wolfgang","anna","max","lisa","jonas","sophie","can","mia"]},{key:"tennis",name:"Tennis",emoji:"🎾",members:["wolfgang","anna","max","jonas","sophie"]},{key:"uni",name:"Uni Freunde",emoji:"🎓",members:["anna","lisa","can","mia","wolfgang"]}];async function Dt(e,{tz:t="Europe/Berlin",now:a=new Date}={}){let n=O(a,t),i=(w,I)=>{let T=P(n.date,(w-n.weekday+7)%7);return Se(T,I,t).getTime()<a.getTime()+36e5&&(T=P(T,7)),Se(T,I,t).toISOString()},s=(w,I)=>{let T=P(n.date,w);return Se(T,I,t).getTime()<a.getTime()+18e5&&(T=P(T,1)),Se(T,I,t).toISOString()},c=(w,I)=>new Date(Date.parse(w)+I*36e5).toISOString(),d={};for(let w of ca)d[w.key]=await e.users.register({name:w.name,email:`${w.key}@demo.bock.app`,password:"demo1234",emoji:w.emoji,color:w.color,isDemo:!0});let l={};for(let w of la){let[I,...T]=w.members;l[w.key]=e.groups.create(d[I].id,{name:w.name,emoji:w.emoji}).id;for(let we of T)e.groups.addMember(l[w.key],d[we].id)}let m=(w,I)=>e.posts.create(d[w].id,{...I,groupIds:I.groups.map(T=>l[T])}),g=(w,I,T)=>e.posts.setParticipation(d[w].id,I.id,T),k=(w,I,T,we="comment")=>e.posts.addComment(d[w].id,I.id,{body:T,kind:we}),j=Number(n.time.slice(0,2)),F=j<21?s(0,`${String(Math.max(19,j+1)).padStart(2,"0")}:00`):s(1,"19:00"),R=m("mia",{type:"availability",startsAt:F,endsAt:c(F,3),description:"Noch nichts vor. Couch oder raus – Hauptsache nicht allein 😅",ideas:["🍺 Bier","🍜 Essen gehen","🎬 Kino"],groups:["crew","uni"]});g("can",R,"free"),k("can",R,"🎬 Neuer Film im Babylon um 20:30?","suggestion");let b=m("lisa",{type:"help_request",title:"IKEA-Regal aufbauen",description:"Hab zwei linke Hände und ein PAX-Regal 🙈 Akkuschrauber wäre super.",startsAt:s(1,"15:00"),location:"Prenzlauer Berg",capacity:1,groups:["crew","uni"]}),U=s(1,"11:00");m("max",{type:"availability",startsAt:U,endsAt:c(U,3),description:"Jemand Lust auf Brunch?",ideas:["🥐 Brunch","🚶 Spazieren"],groups:["crew"]});let K=i(2,"18:00"),je=m("wolfgang",{type:"activity",title:"Tennis",description:"Jemand Lust auf Tennis? Platz ist gebucht.",startsAt:K,endsAt:c(K,2),location:"Tempelhof",groups:["tennis"]});for(let w of["anna","max","jonas","sophie"])g(w,je,"going");let ye=i(2,"18:00"),ve=m("anna",{type:"availability",startsAt:ye,endsAt:c(ye,2),description:"Nach der Arbeit frei.",ideas:["🍺 Bier","🍜 Essen gehen"],groups:["crew","uni"]});g("mia",ve,"free");let $e=m("sophie",{type:"activity",title:"Bouldern",description:"Anfänger:innen willkommen, ich zeig euch die Basics.",startsAt:i(3,"19:00"),location:"Ostbloc, Rummelsburg",capacity:4,groups:["crew"]});g("can",$e,"going"),g("wolfgang",$e,"maybe");let Ke=m("can",{type:"activity",title:"Spieleabend",description:"Catan & Pizza. Bringt Snacks mit!",startsAt:i(4,"20:00"),location:"Bei Can, Kreuzberg",capacity:6,groups:["uni"]});for(let w of["mia","lisa","anna"])g(w,Ke,"going");let r=m("wolfgang",{type:"activity",title:"Expertise Bar",description:"Feierabendbier zum Wochenende. Wer kommt mit?",startsAt:i(5,"20:00"),location:"Expertise Bar, Neukölln",groups:["crew"]});g("anna",r,"going"),g("max",r,"going"),g("can",r,"maybe"),g("lisa",r,"declined"),k("anna",r,"Bin dabei! Komme evtl. 20 Minuten später 🙈"),k("max",r,"Erste Runde geht auf mich 🍻");let h=m("max",{type:"help_request",title:"Couch runtertragen",description:"Meine Couch muss runter. Brauche 2 starke Menschen 😄",startsAt:i(6,"14:00"),location:"Friedrichshain, 4. OG ohne Aufzug",capacity:2,groups:["crew"]});g("jonas",h,"helping"),k("jonas",h,"Bin dabei, bring Handschuhe mit 💪"),k("max",h,"Ihr seid die Besten. Pizza geht auf mich 🍕");let S=i(0,"11:00"),L=m("lisa",{type:"activity",title:"Fahrradtour Tempelhofer Feld",description:"Ganz entspannt, danach Picknick. Decke bring ich mit.",startsAt:S,endsAt:c(S,3),location:"Tempelhofer Feld, Eingang Oderstraße",groups:["crew"]});g("sophie",L,"going"),g("wolfgang",L,"going"),g("anna",L,"maybe");let Q=i(0,"10:00");return m("jonas",{type:"help_offer",title:"Transporter frei",emoji:"🚐",description:"Hab Sonntag einen Transporter gemietet und noch Platz. Wer was zu transportieren hat: melden!",startsAt:Q,endsAt:c(Q,6),capacity:2,groups:["crew"]}),{users:d,groups:l,posts:{mia:R,lisaHelp:b,tennis:je,anna:ve,bar:r,couch:h,bike:L}}}var Ct="bock-web-demo-v1",da=3*864e5,tt=36e5,jt="abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789",ue=(e=10)=>{let t=crypto.getRandomValues(new Uint8Array(e));return Array.from(t,a=>jt[a%jt.length]).join("")},H=()=>new Date().toISOString(),$=(e,t)=>{throw new ce(e,t)},pa=e=>JSON.parse(JSON.stringify(e)),Y=(e,t,a,n=!1)=>{let i=typeof e=="string"?e.trim():"";return i?(i.length>t&&$(400,`${a} ist zu lang (max. ${t} Zeichen).`),i):n?$(400,`${a} fehlt.`):null},Nt=()=>({users:[],groups:[],members:[],posts:[],participants:[],comments:[],notifications:[],session:null,seededAt:null}),p=Nt();function Pt(){try{localStorage.setItem(Ct,JSON.stringify(p))}catch{}}var te=e=>e?{id:e.id,name:e.name,emoji:e.emoji,color:e.color}:null,z=e=>p.users.find(t=>t.id===e),ie=(e,t)=>p.members.some(a=>a.userId===e&&a.groupId===t);function _e({userIds:e,type:t,postId:a=null,actorId:n=null,data:i={},dedupeKey:s}){for(let c of new Set(e)){if(!c||c===n)continue;let d=s?.(c)??null;d&&p.notifications.some(l=>l.dedupeKey===d)||p.notifications.push({id:ue(),userId:c,type:t,postId:a,actorId:n,data:i,dedupeKey:d,createdAt:H(),readAt:null})}}var _t={async register({name:e,email:t,password:a,emoji:n=null,color:i=null,isDemo:s=!1}){e=Y(e,ee.userName,"Name",!0),t=Y(t,200,"E-Mail",!0).toLowerCase(),/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t)||$(400,"Bitte eine gültige E-Mail angeben."),(typeof a!="string"||a.length<6)&&$(400,"Passwort: mindestens 6 Zeichen."),p.users.some(d=>d.email===t)&&$(409,"Diese E-Mail ist schon registriert. Bitte einloggen.");let c={id:ue(12),name:e,email:t,password:a,emoji:n,color:i??he[Math.floor(Math.random()*he.length)],isDemo:s,createdAt:H()};return p.users.push(c),c}};function et(e){return{id:e.id,name:e.name,emoji:e.emoji,inviteCode:e.inviteCode,members:p.members.filter(t=>t.groupId===e.id).map(t=>({...te(z(t.userId)),role:t.role}))}}var q={create(e,{name:t,emoji:a}){let n={id:ue(12),name:Y(t,ee.groupName,"Gruppenname",!0),emoji:Y(a,16,"Emoji")??"👥",inviteCode:ue(10),createdBy:e,createdAt:H()};return p.groups.push(n),p.members.push({groupId:n.id,userId:e,role:"admin",joinedAt:n.createdAt}),et(n)},addMember(e,t,a="member"){ie(t,e)||p.members.push({groupId:e,userId:t,role:a,joinedAt:H()})},get(e,t){let a=p.groups.find(n=>n.id===t)??$(404,"Gruppe nicht gefunden.");return ie(e,t)||$(403,"Du bist nicht in dieser Gruppe."),et(a)},list:e=>p.groups.filter(t=>ie(e,t.id)).map(et),byCode:e=>p.groups.find(t=>t.inviteCode===e)??$(404,"Dieser Einladungslink ist ungültig oder abgelaufen.")},at=(e,t)=>t.authorId===e||t.groupIds.some(a=>ie(e,a))||p.participants.some(a=>a.postId===t.id&&a.userId===e);function Ae(e,t){let a=p.posts.find(n=>n.id===t);return(!a||a.cancelledAt)&&$(404,"Diesen Eintrag gibt es nicht (mehr)."),at(e,a)||$(403,"Dieser Eintrag ist nur für die Gruppe sichtbar."),a}function Mt(e,t){let a=p.participants.filter(i=>i.postId===e.id).sort((i,s)=>i.updatedAt.localeCompare(s.updatedAt)).map(i=>({user:te(z(i.userId)),status:i.status})),n={};for(let{status:i}of a)n[i]=(n[i]??0)+1;return{id:e.id,type:e.type,title:e.title,description:e.description,emoji:e.emoji,startsAt:e.startsAt,endsAt:e.endsAt,location:e.location,capacity:e.capacity,ideas:e.ideas,shareCode:e.shareCode,source:e.source,author:te(z(e.authorId)),groups:e.groupIds.map(i=>p.groups.find(s=>s.id===i)).filter(Boolean).map(({id:i,name:s,emoji:c})=>({id:i,name:s,emoji:c})),participants:a,counts:n,positiveCount:n[N[e.type]]??0,myStatus:a.find(i=>i.user.id===t)?.status??null,isMine:e.authorId===t,commentCount:p.comments.filter(i=>i.postId===e.id).length,createdAt:e.createdAt}}var D={create(e,t){xt.includes(t.type)||$(400,"Unbekannter Typ.");let a=Y(t.title,ee.title,"Titel");a||(a=t.type==="availability"?"Hab Zeit":$(400,"Was habt ihr vor? Bitte einen Titel angeben."));let n=Date.parse(t.startsAt);Number.isNaN(n)&&$(400,"Startzeit fehlt.");let i=t.endsAt?Date.parse(t.endsAt):null;i!==null&&i<=n&&$(400,"Das Ende muss nach dem Start liegen."),n<Date.now()-12*tt&&$(400,"Der Termin liegt in der Vergangenheit.");let s=[...new Set(t.groupIds??[])];s.length||$(400,"Bitte mindestens eine Gruppe auswählen."),s.every(g=>ie(e,g))||$(403,"Du kannst nur in deine eigenen Gruppen posten.");let c=t.capacity?Number(t.capacity):null;c!==null&&(!Number.isInteger(c)||c<1)&&$(400,"Anzahl Personen ist ungültig.");let d=t.type==="availability"&&Array.isArray(t.ideas)?t.ideas.slice(0,ee.ideas):[],l=Y(t.description,ee.description,"Beschreibung"),m={id:ue(12),type:t.type,authorId:e,title:a,description:l,emoji:Y(t.emoji,16,"Emoji")??(t.type==="availability"?d[0]?.split(" ")[0]??"👋":le(`${a} ${l??""}`,t.type)),startsAt:new Date(n).toISOString(),endsAt:i?new Date(i).toISOString():null,untilAt:new Date(i??n+3*tt).toISOString(),location:Y(t.location,ee.location,"Ort"),capacity:c,ideas:d,shareCode:ue(8),source:t.source??"app",rawInput:t.rawInput??null,groupIds:s,createdAt:H(),cancelledAt:null};if(p.posts.push(m),m.type!=="availability"){let g=p.members.filter(k=>s.includes(k.groupId)).map(k=>k.userId);_e({userIds:g,type:"post_created",postId:m.id,actorId:e,data:{postType:m.type}})}return D.get(e,m.id)},list(e,{from:t,to:a,groupId:n,type:i}={}){let s=t?new Date(t).toISOString():H(),c=a?new Date(a).toISOString():null;n&&!ie(e,n)&&$(403,"Du bist nicht in dieser Gruppe.");let d=i?i==="help"?["help_request","help_offer"]:[i]:null;return p.posts.filter(l=>!l.cancelledAt&&l.untilAt>=s&&(!c||l.startsAt<c)).filter(l=>at(e,l)).filter(l=>!n||l.groupIds.includes(n)).filter(l=>!d||d.includes(l.type)).sort((l,m)=>l.startsAt.localeCompare(m.startsAt)).map(l=>Mt(l,e))},get(e,t){let a=Ae(e,t),n=Mt(a,e);return n.comments=p.comments.filter(i=>i.postId===t).sort((i,s)=>i.createdAt.localeCompare(s.createdAt)).map(i=>({id:i.id,kind:i.kind,body:i.body,createdAt:i.createdAt,user:te(z(i.userId)),isMine:i.userId===e})),n},setParticipation(e,t,a,{viaShare:n=!1}={}){let i=n?p.posts.find(c=>c.id===t):Ae(e,t);(!i||i.cancelledAt)&&$(404,"Diesen Eintrag gibt es nicht (mehr)."),i.authorId===e&&$(400,"Das ist dein eigener Eintrag 🙂"),At[i.type].includes(a)||$(400,"Ungültiger Status.");let s=p.participants.find(c=>c.postId===t&&c.userId===e);return s?.status===a||(a===N[i.type]&&i.capacity&&p.participants.filter(d=>d.postId===t&&d.status===a&&d.userId!==e).length>=i.capacity&&$(409,i.type==="help_request"?"Es sind schon genug Helfer:innen da 🎉":"Leider schon voll."),s?Object.assign(s,{status:a,updatedAt:H()}):p.participants.push({postId:t,userId:e,status:a,createdAt:H(),updatedAt:H()}),a!=="declined"&&_e({userIds:[i.authorId],type:"participation",postId:t,actorId:e,data:{status:a}})),D.get(e,t)},addComment(e,t,{body:a,kind:n="comment"}){let i=Ae(e,t),s=Y(a,ee.comment,"Kommentar",!0);p.comments.push({id:ue(12),postId:t,userId:e,kind:n,body:s,createdAt:H()});let c=p.comments.filter(d=>d.postId===t).map(d=>d.userId);return _e({userIds:[i.authorId,...c],type:n==="suggestion"?"suggestion":"comment",postId:t,actorId:e,data:{preview:s.slice(0,80)}}),D.get(e,t)},byShareCode:e=>p.posts.find(t=>t.shareCode===e)??$(404,"Dieser Link ist ungültig.")};function ua(){let e=Date.now();for(let t of p.posts){let a=Date.parse(t.startsAt);if(t.cancelledAt||t.type==="availability"||a<=e||a>e+tt)continue;let n=p.participants.filter(i=>i.postId===t.id&&i.status===N[t.type]).map(i=>i.userId);_e({userIds:[t.authorId,...n],type:"reminder",postId:t.id,data:{startsAt:t.startsAt},dedupeKey:i=>`reminder:${t.id}:${i}`})}}async function Lt(){p=Nt(),await Dt({users:_t,groups:q,posts:D},{tz:"Europe/Berlin"}),p.notifications.forEach((e,t,a)=>e.createdAt=new Date(Date.now()-(a.length-t)*7*6e4).toISOString()),p.seededAt=H(),Pt()}var ma=(async()=>{try{let e=JSON.parse(localStorage.getItem(Ct)??"null");if(e?.seededAt&&Date.now()-Date.parse(e.seededAt)<da){p=e;return}}catch{}await Lt()})();function E(){return(p.session?z(p.session):null)??$(401,"Bitte einloggen.")}var x=e=>async(...t)=>{await ma;let a=await e(...t);return ua(),Pt(),pa(a??{ok:!0})};function xe(){let e=p.session?z(p.session):null;return{user:e?{...te(e),email:e.email,isDemo:e.isDemo}:null,groups:e?q.list(e.id):[],unread:e?p.notifications.filter(t=>t.userId===e.id&&!t.readAt).length:0,app:{name:"Bock",demoMode:!0,tz:"Europe/Berlin",openSignup:!0,webDemo:!0,publicUrl:"https://bock.app"},demoUsers:e?[]:p.users.filter(t=>t.isDemo).map(te)}}function ha(e){let t=D.byShareCode(e),a=z(t.authorId);return{id:t.id,code:t.shareCode,type:t.type,title:t.title,emoji:t.emoji,description:t.description,startsAt:t.startsAt,endsAt:t.endsAt,location:t.location,capacity:t.capacity,cancelled:!!t.cancelledAt,author:{...te(a),name:_(a.name)},positiveNames:p.participants.filter(n=>n.postId===t.id&&n.status===N[t.type]).map(n=>_(z(n.userId).name))}}var f={me:x(()=>xe()),login:x((e,t)=>{let a=p.users.find(n=>n.email===String(e??"").trim().toLowerCase());return(!a||a.password!==t)&&$(401,"E-Mail oder Passwort stimmt nicht."),p.session=a.id,xe()}),register:x(async e=>{let t=await _t.register(e);return e.inviteCode&&q.addMember(q.byCode(e.inviteCode).id,t.id),p.session=t.id,xe()}),demoLogin:x(e=>{let t=z(e);return t?.isDemo||$(400,"Unbekannter Demo-User."),p.session=t.id,xe()}),logout:x(()=>{p.session=null}),updateMe:x(({name:e,emoji:t,color:a})=>{let n=E();return e!==void 0&&(n.name=Y(e,ee.userName,"Name",!0)),t!==void 0&&(n.emoji=t),a!==void 0&&he.includes(a)&&(n.color=a),xe()}),posts:x((e={})=>({posts:D.list(E().id,e)})),post:x(e=>({post:D.get(E().id,e)})),createPost:x(e=>({post:D.create(E().id,e)})),cancelPost:x(e=>{let t=E().id,a=Ae(t,e);a.authorId!==t&&$(403,"Nur wer den Eintrag erstellt hat, kann ihn absagen."),a.cancelledAt=H()}),participate:x((e,t)=>({post:D.setParticipation(E().id,e,t)})),unparticipate:x(e=>{let t=E().id;return Ae(t,e),p.participants=p.participants.filter(a=>!(a.postId===e&&a.userId===t)),{post:D.get(t,e)}}),comment:x((e,t,a="comment")=>({post:D.addComment(E().id,e,{body:t,kind:a})})),deleteComment:x(e=>{let t=E().id,a=p.comments.find(n=>n.id===e)??$(404,"Kommentar nicht gefunden.");return a.userId!==t&&$(403,"Du kannst nur eigene Kommentare löschen."),p.comments=p.comments.filter(n=>n.id!==e),{post:D.get(t,a.postId)}}),share:x(e=>{let t=ha(e),a=p.session?z(p.session):null,n=D.byShareCode(e);return{preview:t,postId:a&&at(a.id,n)?n.id:null}}),joinShare:x(e=>{let t=E().id,a=D.byShareCode(e);return a.authorId===t?{post:D.get(t,a.id)}:{post:D.setParticipation(t,a.id,N[a.type],{viaShare:!0})}}),groups:x(()=>({groups:q.list(E().id)})),group:x(e=>({group:q.get(E().id,e)})),createGroup:x(e=>({group:q.create(E().id,e)})),leaveGroup:x(e=>{let t=E().id;ie(t,e)||$(400,"Du bist nicht in dieser Gruppe."),p.members=p.members.filter(a=>!(a.groupId===e&&a.userId===t)),p.members.some(a=>a.groupId===e)||(p.groups=p.groups.filter(a=>a.id!==e))}),invite:x(e=>{let t=q.byCode(e),a=z(t.createdBy),n=p.session?z(p.session):null;return{invite:{id:t.id,name:t.name,emoji:t.emoji,memberCount:p.members.filter(i=>i.groupId===t.id).length,inviter:te(a)},isMember:n?ie(n.id,t.id):!1}}),acceptInvite:x(e=>{let t=E().id,a=q.byCode(e);return q.addMember(a.id,t),{group:q.get(t,a.id)}}),notifications:x(()=>{let e=E().id,t=p.notifications.filter(a=>a.userId===e).sort((a,n)=>n.createdAt.localeCompare(a.createdAt)).slice(0,50).map(a=>{let n=p.posts.find(i=>i.id===a.postId);return{id:a.id,type:a.type,postId:a.postId,post:n?{title:n.title,emoji:n.emoji,type:n.type}:null,actor:te(z(a.actorId)),data:a.data,createdAt:a.createdAt,read:!!a.readAt}});return{notifications:t,unread:t.filter(a=>!a.read).length}}),readNotifications:x(()=>{let e=E().id;p.notifications.forEach(t=>t.userId===e&&!t.readAt&&(t.readAt=H()))}),resetDemo:x(async()=>{await Lt()})};var u={user:null,groups:[],unread:0,app:{name:"Bock",demoMode:!1},demoUsers:[],apply(e){return this.user=e.user,this.groups=e.groups??[],this.unread=e.unread??0,this.app=e.app??this.app,this.demoUsers=e.demoUsers??[],document.title=this.app.name,this},async refresh(){return this.apply(await f.me())}},nt={get(e,t){try{let a=localStorage.getItem(`bock:${e}`);return a===null?t:JSON.parse(a)}catch{return t}},set(e,t){try{localStorage.setItem(`bock:${e}`,JSON.stringify(t))}catch{}}};var Le=class{constructor(t){this.s=t}toString(){return this.s}},fa={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"},ga=e=>String(e).replace(/[&<>"']/g,t=>fa[t]);function Ot(e){return e==null||e===!1?"":e instanceof Le?e.s:Array.isArray(e)?e.map(Ot).join(""):ga(e)}function o(e,...t){let a=e[0];for(let n=0;n<t.length;n++)a+=Ot(t[n])+e[n+1];return new Le(a)}var v=(e,t=document)=>t.querySelector(e),se=(e,t=document)=>[...t.querySelectorAll(e)],Bt;function A(e,{action:t,onAction:a,duration:n=2600}={}){let i=document.getElementById("toast-root");i.innerHTML=String(o`<div class="toast-wrap"><div class="toast" role="status">
+    <span>${e}</span>${t?o`<button type="button" data-toast-action>${t}</button>`:""}
+  </div></div>`),t&&(i.querySelector("[data-toast-action]").onclick=()=>{i.innerHTML="",a?.()}),clearTimeout(Bt),Bt=setTimeout(()=>i.innerHTML="",n)}var it=null;function V(e,t={}){let a=document.getElementById("sheet-root");a.innerHTML=String(o`<div class="sheet-backdrop" data-sheet-close></div>
+    <section class="sheet" role="dialog" aria-modal="true"><div class="sheet-grip"></div>${e}</section>`),it=t,document.body.style.overflow="hidden",a.querySelector("[autofocus]")?.focus()}function M(){document.getElementById("sheet-root").innerHTML="",it=null,document.body.style.overflow=""}var st=()=>it;function Be({title:e,text:t="",confirmLabel:a="Ja",cancelLabel:n="Abbrechen"}){return new Promise(i=>{let s=c=>{M(),i(c)};V(o`<h2>${e}</h2>${t?o`<p class="muted" style="margin:-6px 4px 18px">${t}</p>`:""}
+        <div class="stack">
+          <button class="btn danger block lg" data-action="confirm-yes">${a}</button>
+          <button class="btn ghost block lg" data-action="confirm-no">${n}</button>
+        </div>`,{"confirm-yes":()=>s(!0),"confirm-no":()=>s(!1)})})}var ot=()=>!!document.querySelector("#sheet-root .sheet");function C(e,t=""){if(!e)return"";let a=e.emoji||(e.name?.[0]??"?").toUpperCase();return o`<span class="avatar ${t}" style="--c:${e.color??"#999"}" title="${e.name}" aria-label="${e.name}">${a}</span>`}function Oe(e,t=4,a="sm"){return o`<span class="avatar-stack">${e.slice(0,t).map(n=>C(n,a))}</span>`}function He(e){let t=(Date.now()-Date.parse(e))/1e3;if(t<60)return"gerade eben";if(t<3600)return`vor ${Math.floor(t/60)} Min.`;if(t<86400)return`vor ${Math.floor(t/3600)} Std.`;let a=Math.floor(t/86400);return a===1?"gestern":`vor ${a} Tagen`}function me(e=12){try{navigator.vibrate?.(e)}catch{}}var Ie=new Map,Z=e=>{for(let t of[].concat(e))Ie.set(t.id,t);return e},oe=e=>`tone-${B[e].tone}`,ba={activity:["ist dabei","sind dabei"],availability:["ist auch frei","sind auch frei"],help_request:["hilft","helfen"],help_offer:["ist interessiert","sind interessiert"]};function ya(e){return e.participants.filter(t=>t.status===N[e.type]).map(t=>t.user)}function rt(e){return!!e.capacity&&e.positiveCount>=e.capacity&&e.myStatus!==N[e.type]}function fe(e){return e.type!=="availability"?e.title:e.isMine?"Du hast Zeit":`${_(e.author.name)} hat Zeit`}function va(e){let t=ya(e);if(!t.length)return e.type==="activity"&&!e.isMine?o`<div class="people">Sei die erste Person 🙌</div>`:"";let[a,n]=ba[e.type],i=t.map(s=>s.name);return o`<div class="people">${Oe(t)}<span><strong>${Pe(i)}</strong> ${t.length===1?a:n}</span></div>`}function ct(e){if(e.type!=="help_request"||!e.capacity)return"";let t=Math.min(e.positiveCount,e.capacity),a=t>=e.capacity,n=a?`Alle ${e.capacity} Helfer gefunden 🎉`:`${t} von ${e.capacity} ${e.capacity===1?"Helfer":"Helfern"} gefunden`;return o`<div class="progress">
+    <div class="progress-bar"><span style="width:${t/e.capacity*100}%"></span></div>
+    <div class="progress-label ${a?"done":""}">${n}</div>
+  </div>`}function lt(e,t="Lust auf"){return e.ideas?.length?o`<div class="ideas"><span class="muted" style="font-size:13px;align-self:center">${t}:</span>${e.ideas.map(a=>o`<span class="idea">${a}</span>`)}</div>`:""}function $a(e){let t=e.id;if(e.isMine)return o`<button class="btn soft sm" data-action="share-post" data-id="${t}">📤 Teilen</button>`;let a=e.myStatus,n=rt(e);switch(e.type){case"activity":return a==="going"?o`<button class="btn soft sm" data-action="unparticipate" data-id="${t}">✓ Du bist dabei</button>`:o`<button class="btn sm" data-action="participate" data-status="going" data-id="${t}" ${n?"disabled":""}>${n?"Voll":"Bin dabei"}</button>
+        ${a==="maybe"?o`<button class="btn soft sm" data-action="unparticipate" data-id="${t}">✓ Vielleicht</button>`:o`<button class="btn ghost sm" data-action="participate" data-status="maybe" data-id="${t}">Vielleicht</button>`}`;case"availability":return o`${a==="free"?o`<button class="btn soft sm" data-action="unparticipate" data-id="${t}">✓ Du bist auch frei</button>`:o`<button class="btn sm" data-action="participate" data-status="free" data-id="${t}">Bin auch frei</button>`}
+        <button class="btn ghost sm" data-action="suggest" data-id="${t}">💡 Vorschlagen</button>`;case"help_request":return a==="helping"?o`<button class="btn soft sm" data-action="unparticipate" data-id="${t}">✓ Du hilfst</button>`:o`<button class="btn sm" data-action="participate" data-status="helping" data-id="${t}" ${n?"disabled":""}>${n?"Genug Hilfe da":"🙋 Ich helfe"}</button>`;case"help_offer":return a==="accepting"?o`<button class="btn soft sm" data-action="unparticipate" data-id="${t}">✓ Angefragt</button>`:o`<button class="btn sm" data-action="participate" data-status="accepting" data-id="${t}" ${n?"disabled":""}>${n?"Vergeben":"Nehm ich gern"}</button>`;default:return""}}function Te(e){Z(e);let t=B[e.type],a=e.groups.map(n=>`${n.emoji??""} ${n.name}`.trim()).join(", ");return o`<article class="card ${oe(e.type)}" data-action="open-post" data-id="${e.id}">
+    <div class="card-head">
+      <span class="row" style="flex:none;gap:8px;align-items:center">${C(e.author,"sm")}
+        <strong style="font-size:14px">${e.isMine?"Du":_(e.author.name)}</strong></span>
+      <span class="kicker">${t.label}</span>
+    </div>
+    <div class="card-title">
+      <div class="card-emoji" aria-hidden="true">${e.emoji??t.emoji}</div>
+      <div style="min-width:0">
+        <h3>${fe(e)}</h3>
+        <div class="card-meta"><strong>${pe(e.startsAt,e.endsAt)}</strong></div>
+      </div>
+    </div>
+    ${e.description?o`<p class="card-desc">„${e.description}“</p>`:""}
+    ${e.location?o`<div class="card-loc">📍 ${e.location}</div>`:""}
+    ${e.type==="availability"?lt(e):""}
+    ${ct(e)}
+    ${va(e)}
+    <div class="card-foot">
+      ${$a(e)}
+      <span class="spacer"></span>
+      ${e.commentCount?o`<span class="comment-count">💬 ${e.commentCount}</span>`:""}
+    </div>
+    ${a?o`<div class="card-groups" style="margin-top:10px">${a}</div>`:""}
+  </article>`}function Ht(e){let t=[],a=null;for(let n of e){let i=Ne(n.startsAt);i!==a&&(a=i,t.push(o`<h2 class="day-head">${i}</h2>`)),t.push(Te(n))}return t}function ae(e,t,a,n=""){return o`<div class="empty"><div class="e-emoji">${e}</div><h3>${t}</h3><p>${a}</p>${n}</div>`}function ze(){for(let e of document.querySelectorAll("[data-unread]"))e.hidden=!u.unread,e.textContent=u.unread>9?"9+":String(u.unread)}function Ge(){let e=(t,a,n,i,s)=>o`<button class="choice tone-${B[a].tone}" data-action="new" data-kind="${t}">
+      <span class="c-emoji">${n}</span><span><strong>${i}</strong><span>${s}</span></span></button>`;return o`<h2>Was möchtest du?</h2>
+    ${e("time","availability","🕐","Ich habe Zeit","Zeitfenster teilen – Freunde melden sich")}
+    ${e("activity","activity","🎯","Ich möchte etwas machen","Tennis, Bar, Kino … wer kommt mit?")}
+    ${e("help","help_request","🤝","Ich brauche / biete Hilfe","Couch tragen, Auto leihen, Umzug …")}`}var wa={activity:{mine:"Ich bin da. Wer kommt mit?",other:"Ich bin dabei – wer noch?"},availability:{mine:"Ich hab Zeit – wer hat Bock?",other:"Wer ist noch frei?"},help_request:{mine:"Wer kann helfen? 🙏",other:"Wer kann helfen? 🙏"},help_offer:{mine:"Braucht jemand Hilfe?",other:"Braucht jemand Hilfe?"}},zt=()=>u.app.publicUrl||location.origin,Gt=e=>`${zt()}/e/${e.shareCode}`,Ut=e=>`${zt()}/i/${e.inviteCode}`;function dt(e){let t=wa[e.type][e.isMine?"mine":"other"],a=e.type==="availability"?`${e.author.name} hat Zeit`:e.title;return`${e.emoji} ${Et(e.startsAt,e.endsAt)} – ${a}
+${t}
+${Gt(e)}`}function pt(e){return`${e.emoji??"👥"} Komm in unsere Gruppe „${e.name}“ – da sehen wir, wer wann Zeit hat und was geht.
+${Ut(e)}`}var Ee=e=>`https://wa.me/?text=${encodeURIComponent(e)}`;async function Sa(e){try{await navigator.clipboard.writeText(e),A("Link kopiert 📋")}catch{A(e,{duration:8e3})}}function Vt({title:e="Teilen",text:t,url:a}){V(o`<h2>${e}</h2>
+      <div class="share-preview">${t}</div>
+      ${u.app.webDemo?o`<p class="hint" style="margin:-6px 4px 14px">Demo: Der Link funktioniert erst, wenn die App unter eigener Domain läuft.</p>`:""}
+      <div class="stack">
+        <a class="btn whatsapp block lg" href="${Ee(t)}" target="_blank" rel="noopener" data-action="sheet-close">
+          <span aria-hidden="true">💬</span> In WhatsApp teilen
+        </a>
+        ${navigator.share?o`<button class="btn dark block lg" data-action="native-share">📤 Andere App…</button>`:""}
+        <button class="btn ghost block lg" data-action="copy-link">🔗 Link kopieren</button>
+      </div>`,{"sheet-close":()=>setTimeout(M,50),"native-share":async()=>{try{await navigator.share({text:t}),M()}catch{}},"copy-link":()=>{Sa(a),M()}})}var Ue=e=>Vt({title:"Mit Freunden teilen",text:dt(e),url:Gt(e)}),ut=e=>Vt({title:`In „${e.name}“ einladen`,text:pt(e),url:Ut(e)});var Ve=async()=>{},Wt=e=>Ve=e;function We(){let e=location.hash.replace(/^#/,"")||"/",[t,a=""]=e.split("?");return{path:t,query:Object.fromEntries(new URLSearchParams(a))}}function y(e,{replace:t=!1}={}){let a=`#${e}`;if(location.hash===a)return Ve();if(t){try{history.replaceState(null,"",a)}catch{location.hash=a;return}return Ve()}location.hash=a}var J=()=>Ve({keepScroll:!0});function Fe(e="/"){let t=null;try{t=sessionStorage.getItem("bock:next"),sessionStorage.removeItem("bock:next")}catch{}return t&&t!=="/login"?t:e}var ka=[["all","Alles",""],["availability","🕐 Zeit","tone-time"],["activity","🎯 Aktivitäten","tone-activity"],["help","🤝 Hilfe","tone-help"]];async function mt(e,t){let a=t.f&&t.f!=="all"?t.f:void 0,n=t.g||void 0,{posts:i}=await f.posts({type:a,groupId:n});Z(i);let s=(m,g)=>new URLSearchParams(Object.entries({f:m,g}).filter(([,k])=>k&&k!=="all")).toString(),c=ka.map(([m,g,k])=>o`<button class="chip ${k} ${(a??"all")===m?"on":""}"
+      data-action="filter" data-q="${s(m,n)}">${g}</button>`),d=u.groups.length>1?o`<div class="chips" style="margin-top:8px">
+          <button class="chip small ${n?"":"on"}" data-action="filter" data-q="${s(a)}">Alle Gruppen</button>
+          ${u.groups.map(m=>o`<button class="chip small ${n===m.id?"on":""}" data-action="filter" data-q="${s(a,m.id)}">${m.emoji} ${m.name}</button>`)}</div>`:"",l;return u.groups.length?i.length?l=Ht(i):l=ae("🌤️",a||n?"Hier ist gerade nichts los":"Noch ist es ruhig","Mach den Anfang – sag, wann du Zeit hast oder worauf du Bock hast.",o`<button class="btn dark" data-action="plus">+ Eintrag erstellen</button>`):l=ae("👥","Noch keine Gruppe","Gründe eine Gruppe und lade deine Freunde per Link ein.",o`<a class="btn dark" href="#/groups?new=1">Gruppe erstellen</a>`),{html:o`
+      <header class="topbar">
+        <div class="title-wrap">
+          <div class="sub">Hi ${_(u.user.name)} 👋</div>
+          <h1>Was geht bei euch?</h1>
+        </div>
+        <a class="icon-btn" href="#/notifications" aria-label="Benachrichtigungen">🔔
+          <span class="badge-dot" data-unread ${u.unread?"":"hidden"}>${u.unread>9?"9+":u.unread}</span></a>
+      </header>
+
+      <div class="quick">
+        <button class="time" data-action="new" data-kind="time"><span class="q-emoji">🕐</span>Ich habe Zeit</button>
+        <button class="activity" data-action="new" data-kind="activity"><span class="q-emoji">🎯</span>Aktivität</button>
+        <button class="help" data-action="new" data-kind="help"><span class="q-emoji">🤝</span>Hilfe</button>
+      </div>
+
+      <div class="chips">${c}</div>
+      ${d}
+      ${l}`,actions:{filter:m=>y(`/${m.dataset.q?`?${m.dataset.q}`:""}`,{replace:!0})}}}var xa=["Jan","Feb","März","Apr","Mai","Juni","Juli","Aug","Sep","Okt","Nov","Dez"],ht=e=>e.isMine||e.myStatus===N[e.type]||e.myStatus==="maybe";async function ft(e,t){let a=Number(t.w??0)||0,n=t.mine==="1",i=O(new Date).date,s=P(i,a*7),c=P(s,6),{posts:d}=await f.posts({from:new Date(`${s}T00:00`).toISOString(),to:new Date(`${P(s,7)}T00:00`).toISOString()});Z(d);let l=n?d.filter(ht):d,m=new Map(Array.from({length:7},(b,U)=>[P(s,U),[]]));for(let b of l)m.get(O(b.startsAt).date)?.push(b);let g=b=>`${Number(b.slice(8))}. ${xa[Number(b.slice(5,7))-1]}`,k=a===0?"Die nächsten 7 Tage":a===1?"Danach":a<0?"Vorher":`In ${a} Wochen`,j=(b,U)=>`/week?${new URLSearchParams({...b?{w:b}:{},...U?{mine:"1"}:{}})}`,F=b=>o`<a class="w-item ${oe(b.type)} ${ht(b)?"mine":""}" href="#/post/${b.id}">
+      <span class="w-time">${Qe(b.startsAt,b.endsAt).replace("–","–​")}</span>
+      <span class="w-main">
+        <div class="w-title">${b.emoji} ${fe(b)}</div>
+        <div class="w-sub">${[b.isMine?"Du":_(b.author.name),b.positiveCount?`+${b.positiveCount}`:"",b.location].filter(Boolean).join(" · ")}</div>
+      </span>
+      ${b.isMine?o`<span class="tag yes">Du</span>`:ht(b)?o`<span class="tag yes">✓</span>`:""}
+    </a>`,R=[...m.entries()].map(([b,U])=>{let K=b<i;return o`<div class="week-day ${b===i?"today":""}" style="${K?"opacity:.55":""}">
+      <div class="wd-label"><div class="wd">${ke[de(b)]}</div><div class="dn">${Number(b.slice(8))}</div></div>
+      <div class="week-items">
+        ${U.length?U.map(F):o`<div class="w-empty"><span>${K?"–":"Noch nichts"}</span>${K?"":o`<a href="#/new/time?date=${b}">+ Zeit eintragen</a>`}</div>`}
+      </div>
+    </div>`});return{html:o`
+      <header class="topbar"><div class="title-wrap"><div class="sub">Woche</div><h1>Was geht?</h1></div></header>
+      <div class="week-nav">
+        <button class="icon-btn" data-action="go" data-to="${j(a-1,n)}" aria-label="Vorherige Woche">‹</button>
+        <div class="range">${k}<div class="muted" style="font-size:13px;font-weight:600">${g(s)} – ${g(c)}</div></div>
+        <button class="icon-btn" data-action="go" data-to="${j(a+1,n)}" aria-label="Nächste Woche">›</button>
+      </div>
+      <div class="chips">
+        <button class="chip ${n?"":"on"}" data-action="go" data-to="${j(a,!1)}">Alle Freunde</button>
+        <button class="chip ${n?"on":""}" data-action="go" data-to="${j(a,!0)}">Meine Pläne</button>
+      </div>
+      <div class="legend" style="margin-top:12px">
+        <span class="tone-time"><i></i>Zeit</span><span class="tone-activity"><i></i>Aktivität</span><span class="tone-help"><i></i>Hilfe</span>
+      </div>
+      <div style="margin-top:6px">${R}</div>`,actions:{go:b=>y(b.dataset.to,{replace:!0})}}}var Aa={going:"Dabei",maybe:"Vielleicht",declined:"Kann nicht",free:"Auch frei",helping:"Hilft",accepting:"Interessiert"};function Ft(e){V(o`<h2>Was wollt ihr machen?</h2>
+      <p class="muted" style="margin:-8px 4px 16px">${_(e.author.name)} hat ${pe(e.startsAt,e.endsAt)} Zeit.</p>
+      <form data-submit="send-suggestion" class="form">
+        <div class="ideas" style="gap:8px">
+          ${Me.map(t=>o`<button type="button" class="chip" data-action="pick-idea" data-idea="${t}">${t}</button>`)}
+        </div>
+        <input class="input" name="body" id="suggest-input" placeholder="oder eigene Idee, z. B. Pizza bei mir" maxlength="200" autocomplete="off">
+        <button class="btn block lg tone-time" type="submit">💡 Vorschlagen</button>
+      </form>`,{"pick-idea":t=>{v("#suggest-input").value=t.dataset.idea,v("#suggest-input").focus()},"send-suggestion":async t=>{let a=t.body.value.trim();if(!a)return A("Was schlägst du vor?");await f.comment(e.id,a,"suggestion"),M(),A("Vorschlag geschickt 💡"),J()}})}function Ia(e){var d;let t={};for(let l of e.participants)(t[d=l.status]??(t[d]=[])).push(l.user);let a=e.type==="activity"?["going","maybe","declined"]:Object.keys(t),n=o`<div class="list-item">${C(e.author,"md")}<div class="grow"><div class="title">${e.isMine?"Du":e.author.name}</div></div>
+    <span class="tag yes">${e.type==="activity"?"Host":e.type==="availability"?"Hat Zeit":e.type==="help_request"?"Braucht Hilfe":"Bietet Hilfe"}</span></div>`,i=a.flatMap(l=>(t[l]??[]).map(m=>o`<div class="list-item">${C(m,"md")}<div class="grow"><div class="title">${m.name}</div></div>
+        <span class="tag ${["going","free","helping","accepting"].includes(l)?"yes":""}">${Aa[l]}</span></div>`)),s=e.positiveCount+(e.type==="activity"?1:0),c=e.type==="activity"?`Wer ist dabei · ${s}${e.capacity?` / ${e.capacity+1}`:""}`:"Leute";return o`<section class="section"><h2 class="section-title"><span>${c}</span></h2>
+    <div class="list">${n}${i}</div>
+    ${i.length?"":o`<p class="hint">Noch niemand – teil den Link, dann geht's schneller.</p>`}</section>`}function Ta(e){if(e.isMine)return o`<div class="actions">
+      <button class="btn" data-action="share-post" data-id="${e.id}">📤 Freunde einladen</button>
+      ${e.type==="availability"?o`<button class="btn soft" data-action="plan-from" data-title="">🎯 Plan draus machen</button>`:""}
+    </div>`;let t=e.myStatus,a=rt(e),n=(i,s)=>o`<button class="btn ${t===i?"on":""}" data-action="status" data-status="${i}" ${a&&i!=="maybe"&&i!=="declined"&&t!==i?"disabled":""}>${t===i?"✓ ":""}${s}</button>`;switch(e.type){case"activity":return o`<div class="status-row">${n("going",a?"Voll":"Bin dabei")}${n("maybe","Vielleicht")}${n("declined","Kann nicht")}</div>`;case"availability":return o`<div class="actions">
+        <button class="btn ${t==="free"?"soft":""}" data-action="status" data-status="free">${t==="free"?"✓ Bin auch frei":"Bin auch frei"}</button>
+        <button class="btn soft" data-action="suggest" data-id="${e.id}">💡 Aktivität vorschlagen</button></div>`;case"help_request":return o`<div class="actions"><button class="btn lg ${t==="helping"?"soft":""}" data-action="status" data-status="helping" ${a?"disabled":""}>
+        ${t==="helping"?"✓ Du hilfst – danke!":a?"Schon genug Hilfe da 🎉":"🙋 Ich helfe"}</button></div>`;case"help_offer":return o`<div class="actions"><button class="btn lg ${t==="accepting"?"soft":""}" data-action="status" data-status="accepting" ${a?"disabled":""}>
+        ${t==="accepting"?"✓ Angefragt":a?"Schon vergeben":"🙌 Nehm ich gern"}</button></div>`;default:return""}}function Ea(e){let t=e.isMine&&e.type==="availability";return o`<section class="section"><h2 class="section-title"><span>Kommentare${e.comments.length?` · ${e.comments.length}`:""}</span></h2>
+    ${e.comments.length?"":o`<p class="hint" style="margin-bottom:12px">Noch keine Kommentare. Frag einfach, was noch fehlt.</p>`}
+    ${e.comments.map(a=>o`<div class="comment">${C(a.user,"sm")}
+        <div style="min-width:0;flex:1">
+          <div class="bubble ${a.kind==="suggestion"?"suggestion tone-time":""}">
+            <div class="who">${a.isMine?"Du":a.user.name} <span class="muted">· ${He(a.createdAt)}${a.kind==="suggestion"?" · 💡 Vorschlag":""}</span></div>
+            <p>${a.body}</p>
+          </div>
+          <div class="row" style="gap:4px;justify-content:flex-start">
+            ${t&&a.kind==="suggestion"?o`<button class="link-btn tone-time" data-action="plan-from" data-title="${a.body}" style="flex:none">→ Planen</button>`:""}
+            ${a.isMine?o`<button class="link-btn" style="flex:none;color:var(--muted);font-weight:600;font-size:13px" data-action="delete-comment" data-id="${a.id}">Löschen</button>`:""}
+          </div>
+        </div></div>`)}</section>`}async function gt({id:e},t){let{post:a}=await f.post(e);Z(a);let n=B[a.type],i=a.location?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}`:null,s=t.created?o`<div class="banner ${oe(a.type)}">
+        <h3>🎉 Ist drin!</h3>
+        <p>Deine Gruppe sieht es jetzt. Schick's direkt in euren WhatsApp-Chat – dann geht's am schnellsten.</p>
+        <div class="actions" style="margin:0">
+          <a class="btn whatsapp" href="${Ee(dt(a))}" target="_blank" rel="noopener">💬 WhatsApp</a>
+          <button class="btn ghost" data-action="share-post" data-id="${a.id}">Mehr…</button>
+        </div></div>`:"";return{html:o`
+      <div class="${oe(a.type)}">
+        <header class="topbar compact">
+          <button class="icon-btn" data-action="close" aria-label="Zurück">←</button>
+          <span style="flex:1"></span>
+          <button class="icon-btn" data-action="share-post" data-id="${a.id}" aria-label="Teilen">📤</button>
+          ${a.isMine?o`<button class="icon-btn" data-action="menu" aria-label="Mehr">⋯</button>`:""}
+        </header>
+        ${s}
+        <section class="hero">
+          <span class="kicker" style="background:var(--surface)">${n.label}</span>
+          <div class="emoji" aria-hidden="true">${a.emoji??n.emoji}</div>
+          <h1>${fe(a)}</h1>
+          <div class="when">${pe(a.startsAt,a.endsAt)}</div>
+          <div class="meta-line">${C(a.author,"sm")}<span>${a.isMine?"Von dir":`von ${a.author.name}`}</span></div>
+          ${a.location?o`<div class="meta-line">📍 <a href="${i}" target="_blank" rel="noopener">${a.location}</a></div>`:""}
+          ${a.description?o`<p class="desc">${a.description}</p>`:""}
+          ${a.type==="availability"?lt(a):""}
+          ${ct(a)}
+          <div class="meta-line muted" style="font-size:13px">👥 ${a.groups.map(c=>`${c.emoji??""} ${c.name}`).join(" · ")}</div>
+        </section>
+        ${Ta(a)}
+        ${Ia(a)}
+        ${Ea(a)}
+        <div class="composer"><form data-submit="comment">
+          <input class="input" name="body" placeholder="Kommentar schreiben…" maxlength="1000" autocomplete="off" enterkeyhint="send">
+          <button type="submit" aria-label="Senden">➤</button>
+        </form></div>
+      </div>`,actions:{close:()=>t.created||history.length<=1?y("/"):history.back(),status:async c=>{me();let d=c.dataset.status;a.myStatus===d?(await f.unparticipate(a.id),A("Ausgetragen")):(await f.participate(a.id,d),A({going:"Du bist dabei 🙌",maybe:"Vielleicht – okay!",declined:"Schade! Danke fürs Bescheidgeben",free:"Ihr seid beide frei 🙌",helping:"Danke, dass du hilfst 💛",accepting:"Angefragt 👍"}[d])),J()},comment:async c=>{let d=c.body.value.trim();d&&(await f.comment(a.id,d),c.body.value="",await J(),window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}))},"delete-comment":async c=>{await f.deleteComment(c.dataset.id),J()},"plan-from":c=>{let d=O(a.startsAt),l=new URLSearchParams({date:d.date,start:d.time});a.endsAt&&l.set("end",O(a.endsAt).time),c.dataset.title&&l.set("title",c.dataset.title),y(`/new/activity?${l}`)},menu:()=>V(o`<h2>${fe(a)}</h2><div class="stack">
+            <button class="btn ghost block lg" data-action="share">📤 Teilen</button>
+            <button class="btn danger block lg" data-action="cancel-post">Absagen & löschen</button></div>`,{share:()=>Ue(a),"cancel-post":async()=>{await Be({title:"Wirklich absagen?",text:"Alle, die dabei sind, sehen den Eintrag dann nicht mehr.",confirmLabel:"Absagen & löschen"})&&(await f.cancelPost(a.id),A("Abgesagt"),y("/",{replace:!0}))}})}}}var Da={sonntag:0,montag:1,dienstag:2,mittwoch:3,donnerstag:4,freitag:5,samstag:6,so:0,mo:1,di:2,mi:3,do:4,fr:5,sa:6},ja=[[/\b(heute\s+)?abends?\b/i,"19:00"],[/\bnachmittags?\b/i,"15:00"],[/\bmittags?\b/i,"12:00"],[/\b(vormittags?|morgens|früh)\b/i,"10:00"]],G="(?<![\\p{L}\\d])",re="(?![\\p{L}\\d])",W=(e,t="iu")=>new RegExp(e,t);function Rt(e,t){let a=(t-de(e)+7)%7;return P(e,a)}function X(e,t){e.text=e.text.slice(0,t.index)+" "+e.text.slice(t.index+t[0].length)}function Ma(e){let t=W(`${G}(ich\\s+)?(hab(e)?\\s+(heute\\s+)?zeit|bin\\s+frei|noch\\s+nichts\\s+vor)${re}`).exec(e.text);return t?(X(e,t),"availability"):W(`${G}(biete|kann\\s+(jemandem\\s+|euch\\s+)?helfen|helfe\\s+gern)${re}`).test(e.text)?"help_offer":W(`${G}(brauche|suche)\\s+(hilfe|jemand|leute|helfer)|${G}hilfe${re}|${G}wer\\s+(kann|hilft)`).test(e.text)?"help_request":null}function Ca(e,t){let a=W(`${G}(?:am\\s+)?(\\d{1,2})\\.(\\d{1,2})\\.(\\d{2,4})?`).exec(e.text);if(a){let[,l,m,g]=a,k=Number(g?g.length===2?`20${g}`:g:t.slice(0,4)),j=R=>String(R).padStart(2,"0"),F=`${k}-${j(m)}-${j(l)}`;if(!g&&F<t&&(F=`${k+1}-${j(m)}-${j(l)}`),Number(m)>=1&&Number(m)<=12&&Number(l)>=1&&Number(l)<=31)return X(e,a),F}let n=W(`${G}(heute|übermorgen|morgen)${re}`).exec(e.text);if(n){X(e,n);let l=n[1].toLowerCase();return P(t,l==="heute"?0:l==="morgen"?1:2)}let i=W(`${G}(?:am\\s+|dieses\\s+|nächstes\\s+)?wochenende${re}`).exec(e.text);if(i)return X(e,i),Rt(t,6);let s=W(`${G}(?:(?:am|diesen|nächsten|kommenden)\\s+)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)s?${re}`).exec(e.text),c=W(`(?:^\\s*|${G}(?:am\\s+))(mo|di|mi|do|fr|sa|so)\\.?(?=\\s*\\d|\\s|$)`).exec(e.text)??W(`${G}(mo|di|mi|do|fr|sa|so)\\.?(?=\\s*\\d)`).exec(e.text),d=s??c;return d?(X(e,d),Rt(t,Da[d[1].toLowerCase()])):null}function Na(e){let t=W(`${G}(?:von\\s+)?(\\d{1,2})(?:[:.](\\d{2}))?\\s*(?:uhr|h)?\\s*(?:-|–|bis)\\s*(\\d{1,2})(?:[:.](\\d{2}))?\\s*(?:uhr|h)?${re}`).exec(e.text);if(t){let n=Ce(t[1],t[2]??0),i=Ce(t[3],t[4]??0);if(n&&i)return X(e,t),{start:n,end:i}}let a=W(`${G}(?:(um|ab|gegen)\\s+)?(\\d{1,2})(?:[:.](\\d{2}))?\\s*(uhr|h)?${re}`,"giu");for(let n of e.text.matchAll(a)){let[,i,s,c,d]=n;if(!i&&!c&&!d)continue;let l=Ce(s,c??0);if(l)return X(e,n),{start:l,end:null}}for(let[n,i]of ja){let s=n.exec(e.text);if(s)return X(e,s),{start:i,end:null}}return{start:null,end:null}}function Pa(e,t){let n=W(`(?:^|\\s)${t==="help_request"||t==="help_offer"?"(?:in\\s+der|im|in|@)":"(?:in\\s+der|im|in|am|an\\s+der|auf\\s+dem|auf\\s+der|beim|@)"}\\s+(.+)$`).exec(e.text);if(n&&/\p{Lu}|\d/u.test(n[1].trim()[0]??"")||n&&n[0].trim().startsWith("@"))return X(e,n),n[1].trim();let i=e.text.trim().split(/\s+/).filter(Boolean);return i.length>=2&&le(i[0])!==B.activity.emoji&&/^\p{Lu}/u.test(i[1])?(e.text=i[0],i.slice(1).join(" ")):null}function _a(e){let t=e.replace(/\s+/g," ").replace(/^[\s,.;:·\-–]+|[\s,;:·\-–]+$/g,"").trim();return t?t[0].toUpperCase()+t.slice(1):""}function qt(e,{today:t}){let a={text:` ${String(e??"").trim()} `},n=Ma(a),i=Ca(a,t),{start:s,end:c}=Na(a),d=Pa(a,n),l=_a(a.text),m=n??(l?"activity":i||s?"availability":null);return{type:m,title:l,date:i,start:s,end:c,location:d,emoji:le(`${l} ${e}`,m??"activity"),recognized:!!(i||s||d||n)}}var La={time:{type:"availability",title:"Ich habe Zeit",cta:"Zeit teilen",start:"18:00",duration:3},activity:{type:"activity",title:"Ich möchte etwas machen",cta:"Posten",start:"19:00",duration:0},help:{type:"help_request",title:"Hilfe",cta:"Posten",start:"10:00",duration:0}},bt=e=>String(e).padStart(2,"0"),Re=(e,t)=>{let[a,n]=e.split(":").map(Number);return`${bt((a+t)%24)}:${bt(n)}`};function Zt(){return{html:o`<header class="topbar compact"><button class="icon-btn" data-action="back" aria-label="Schließen">✕</button></header>
+      <div style="margin-top:8px">${Ge()}</div>`}}function yt({kind:e},t){let a=La[e];if(!a)return y("/new",{replace:!0});if(!u.groups.length)return{html:o`<header class="topbar compact"><button class="icon-btn" data-action="back">✕</button></header>
+        ${ae("👥","Erst eine Gruppe","Damit deine Freunde deinen Eintrag sehen, brauchst du eine Gruppe.",o`<a class="btn dark" href="#/groups?new=1">Gruppe erstellen</a>`)}`};let n=O(new Date),i=n.date,s={type:e==="help"&&t.type==="help_offer"?"help_offer":a.type,date:t.date??i,start:t.start??a.start,end:t.end??(a.duration?Re(t.start??a.start,a.duration):""),ideas:new Set,groupIds:new Set((nt.get("lastGroups",null)??u.groups.map(r=>r.id)).filter(r=>u.groups.some(h=>h.id===r))),capacity:e==="help"?1:null,parsed:null};if(s.groupIds.size||u.groups.forEach(r=>s.groupIds.add(r.id)),!t.start&&s.date===i&&s.start<=n.time){let r=Math.min(Number(n.time.slice(0,2))+1,23);s.start=`${bt(r)}:00`,a.duration&&(s.end=Re(s.start,a.duration))}let c=()=>`tone-${B[s.type].tone}`,d=Array.from({length:7},(r,h)=>P(i,h)),l=(r,h)=>h===0?"Heute":h===1?"Morgen":`${ke[de(r)]} ${Number(r.slice(8))}.`,m=!d.includes(s.date),g=(r,h)=>o`<div class="field">
+      <label for="f-title">${r}</label>
+      <input id="f-title" class="input big" name="title" autocomplete="off" enterkeyhint="done"
+        placeholder="${h}" value="${t.title??""}" maxlength="120" autofocus>
+      <div id="parsed" class="parsed" aria-live="polite"></div>
+    </div>`,k=o`<div class="field">
+      <span class="label">Wann?</span>
+      <div class="chips" id="day-chips">
+        ${d.map((r,h)=>o`<button type="button" class="chip ${c()} ${s.date===r?"on":""}" data-action="day" data-date="${r}">${l(r,h)}</button>`)}
+        <button type="button" class="chip ${c()} ${m?"on":""}" data-action="pick-date">📅</button>
+      </div>
+      <input type="date" class="input" id="f-date" min="${i}" value="${s.date}" style="margin-top:10px" ${m?"":"hidden"}>
+    </div>`,j=r=>o`<div class="field">
+      <div class="row">
+        <input type="time" class="input time-input" id="f-start" value="${s.start}" step="900" aria-label="Von">
+        ${r?o`<span class="sep">bis</span><input type="time" class="input time-input" id="f-end" value="${s.end}" step="900" aria-label="Bis">`:o`<span id="end-wrap" class="row" style="flex:1" ${s.end?"":"hidden"}><span class="sep">bis</span>
+              <input type="time" class="input time-input" id="f-end" value="${s.end}" step="900" aria-label="Bis"></span>
+              <button type="button" class="link-btn" data-action="show-end" style="flex:none" ${s.end?"hidden":""}>+ Ende</button>`}
+      </div>
+    </div>`,F=o`<div class="field"><input class="input" id="f-location" placeholder="📍 Wo? (optional)" maxlength="120" value="${t.location??""}" autocomplete="off"></div>`,R=o`<div class="field">
+      <span class="label">Wer sieht das?</span>
+      <div class="chips" id="group-chips">
+        ${u.groups.map(r=>o`<button type="button" class="chip ${s.groupIds.has(r.id)?"on":""}" data-action="group" data-id="${r.id}">${r.emoji} ${r.name}</button>`)}
+      </div>
+    </div>`,b;e==="time"?b=o`
+      ${k}
+      <div class="field"><span class="label">Von – bis</span>${j(!0)}</div>
+      <div class="field">
+        <span class="label">Lust auf … (optional)</span>
+        <div class="ideas" id="idea-chips" style="gap:8px">
+          ${Me.map(r=>o`<button type="button" class="chip ${c()}" data-action="idea" data-idea="${r}">${r}</button>`)}
+        </div>
+      </div>
+      <div class="field"><input class="input" id="f-description" placeholder="Notiz, z. B. „Noch nichts vor.“" maxlength="300" autocomplete="off"></div>
+      ${R}`:e==="activity"?b=o`
+      ${g("Was?","z. B. Tennis Di 18-20 Tempelhof")}
+      ${k}
+      ${j(!1)}
+      ${F}
+      <button type="button" class="link-btn" data-action="more" id="more-btn" style="align-self:flex-start">+ Beschreibung & Plätze</button>
+      <div id="more" class="form" hidden>
+        <div class="field"><textarea class="textarea" id="f-description" placeholder="Beschreibung (optional)" maxlength="1000"></textarea></div>
+        <div class="field row" style="justify-content:space-between">
+          <span class="label" style="margin:0">Max. Plätze</span>
+          <input type="number" inputmode="numeric" min="1" max="999" class="input" id="f-capacity" placeholder="egal" style="max-width:110px;text-align:center">
+        </div>
+      </div>
+      ${R}`:b=o`
+      <div class="segmented" id="help-toggle">
+        <button type="button" data-action="help-type" data-type="help_request" class="${s.type==="help_request"?"on":""}">🙋 Ich brauche Hilfe</button>
+        <button type="button" data-action="help-type" data-type="help_offer" class="${s.type==="help_offer"?"on":""}">🤝 Ich biete Hilfe</button>
+      </div>
+      ${g("Wobei?",s.type==="help_offer"?"z. B. Hab ein Auto, kann was transportieren":"z. B. Couch runtertragen Sa 14 Uhr")}
+      ${k}
+      ${j(!1)}
+      <div class="field row" style="justify-content:space-between">
+        <span class="label" style="margin:0" id="cap-label">${s.type==="help_offer"?"Für wie viele?":"Wie viele Leute?"}</span>
+        <span class="stepper"><button type="button" data-action="cap" data-d="-1" aria-label="weniger">−</button>
+          <output id="f-cap">${s.capacity}</output>
+          <button type="button" data-action="cap" data-d="1" aria-label="mehr">+</button></span>
+      </div>
+      ${F}
+      <div class="field"><textarea class="textarea" id="f-description" placeholder="Details (optional)" maxlength="1000"></textarea></div>
+      ${R}`;let U=()=>e==="help"?s.type==="help_offer"?"Hilfe anbieten":"Hilfe anfragen":a.cta,K=(r,h=document)=>{s.date=r;let S=d.includes(r);se("#day-chips .chip",h).forEach(Q=>Q.classList.toggle("on",S?Q.dataset.date===r:Q.dataset.action==="pick-date"));let L=v("#f-date",h);L.value=r,L.hidden=S},je=r=>{let h=v("#parsed");if(!h)return;if(!r?.recognized){h.innerHTML="";return}let S=[];if(r.date){let L=d.indexOf(r.date);S.push(L>=0?l(r.date,L).replace(/ \d+\.$/,""):`${Xe[de(r.date)]}, ${r.date.slice(8)}.${r.date.slice(5,7)}.`)}r.start&&S.push(r.end?`${r.start}–${r.end}`:r.start),r.location&&S.push(`📍 ${r.location}`),r.title&&S.push(`„${r.title}“`),h.innerHTML=String(o`<span>✨ ${S.join(" · ")}</span>`)},ye,ve=r=>{clearTimeout(ye),ye=setTimeout(()=>{let h=r.target.value,S=h.trim().length>2?qt(h,{today:i}):null;s.parsed=S?.recognized?S:null,je(s.parsed),s.parsed&&(S.date&&K(S.date),S.start&&(v("#f-start").value=S.start),S.end&&(v("#f-end").value=S.end,v("#end-wrap")?.removeAttribute("hidden"),v('[data-action="show-end"]')?.setAttribute("hidden","")),S.location&&v("#f-location")&&(v("#f-location").value=S.location),e==="help"&&(S.type==="help_offer"||S.type==="help_request")&&S.type!==s.type&&$e(S.type))},250)},$e=r=>{s.type=r,se("#help-toggle button").forEach(h=>h.classList.toggle("on",h.dataset.type===r)),v("#cap-label").textContent=r==="help_offer"?"Für wie viele?":"Wie viele Leute?",v("#submit-btn").textContent=U()};async function Ke(){let r=v("#f-title")?.value.trim()??"",h=s.parsed?.title||r;if(e!=="time"&&!h)throw v("#f-title").focus(),new Error(e==="help"?"Wobei brauchst du Hilfe?":"Was habt ihr vor?");if(!s.groupIds.size)throw new Error("Wähl mindestens eine Gruppe aus.");let S=v("#f-start").value||s.start,L=v("#f-end"),Q=L&&!L.closest("[hidden]")?L.value:"",w=new Date(`${s.date}T${S}`),I=null;Q&&(I=new Date(`${s.date}T${Q}`),I<=w&&(I=new Date(I.getTime()+864e5)));let T=e==="help"?s.capacity:v("#f-capacity")?.value,we={type:s.type,title:e==="time"?void 0:h,startsAt:w.toISOString(),endsAt:I?.toISOString()??null,location:v("#f-location")?.value||null,description:v("#f-description")?.value||null,capacity:T?Number(T):null,ideas:[...s.ideas],groupIds:[...s.groupIds],emoji:e==="time"?s.ideas.size?[...s.ideas][0].split(" ")[0]:"👋":le(`${h} ${r}`,s.type),source:s.parsed?"nlp":"app",rawInput:s.parsed?r:null},Ye=v("#submit-btn");Ye.disabled=!0;try{let{post:sa}=await f.createPost(we);nt.set("lastGroups",[...s.groupIds]),me(20),y(`/post/${sa.id}?created=1`,{replace:!0})}finally{Ye.isConnected&&(Ye.disabled=!1)}}return{html:o`
+      <form class="${c()}" data-submit="create" id="create-form" novalidate>
+        <header class="topbar compact">
+          <button type="button" class="icon-btn" data-action="back" aria-label="Schließen">✕</button>
+          <h1>${e==="help"?"Hilfe":a.title}</h1>
+        </header>
+        <div class="form" style="margin-top:8px">${b}</div>
+        <div class="sticky-cta"><div><button class="btn lg block" id="submit-btn" type="submit">${U()}</button></div></div>
+      </form>`,mount(r){v("#f-title",r)?.addEventListener("input",ve),v("#f-date",r)?.addEventListener("change",h=>h.target.value&&K(h.target.value,r)),v("#f-start",r)?.addEventListener("change",h=>{e==="time"&&a.duration&&(v("#f-end",r).value=Re(h.target.value,a.duration))}),t.title&&ve({target:v("#f-title",r)})},actions:{day:r=>K(r.dataset.date),"pick-date":()=>{let r=v("#f-date");r.hidden=!1,r.showPicker?.(),r.focus()},"show-end":r=>{r.hidden=!0,v("#end-wrap").hidden=!1;let h=v("#f-end");h.value||(h.value=Re(v("#f-start").value||s.start,2))},idea:r=>{let h=r.dataset.idea;s.ideas.has(h)?s.ideas.delete(h):s.ideas.size<6&&s.ideas.add(h),r.classList.toggle("on",s.ideas.has(h))},group:r=>{let h=r.dataset.id;s.groupIds.has(h)?s.groupIds.delete(h):s.groupIds.add(h),r.classList.toggle("on",s.groupIds.has(h))},more:r=>{r.hidden=!0,v("#more").hidden=!1},"help-type":r=>$e(r.dataset.type),cap:r=>{s.capacity=Math.max(1,Math.min(20,s.capacity+Number(r.dataset.d))),v("#f-cap").textContent=s.capacity},create:Ke}}}var Kt=["🐻","🎾","🎓","🏠","⚽","🍻","🎉","🧗","🚲","🌴","💼","❤️"];function Yt(){let e=Kt[0];V(o`<h2>Neue Gruppe</h2>
+      <form data-submit="create-group" class="form">
+        <input class="input big" name="name" placeholder="z. B. Berlin Crew" maxlength="40" autocomplete="off" autofocus required>
+        <div class="emoji-pick">${Kt.map((t,a)=>o`<button type="button" class="${a===0?"on":""}" data-action="pick-emoji" data-emoji="${t}">${t}</button>`)}</div>
+        <button class="btn dark block lg" type="submit">Gruppe erstellen</button>
+      </form>`,{"pick-emoji":t=>{e=t.dataset.emoji,se(".emoji-pick button").forEach(a=>a.classList.toggle("on",a===t))},"create-group":async t=>{let a=t.name.value.trim();if(!a)return A("Wie heißt eure Gruppe?");let{group:n}=await f.createGroup({name:a,emoji:e});await u.refresh(),M(),y(`/groups/${n.id}?created=1`)}})}async function vt(e,t){let{groups:a}=await f.groups();return u.groups=a,t.new&&setTimeout(Yt,50),{html:o`
+      <header class="topbar">
+        <div class="title-wrap"><div class="sub">Privat, nur für euch</div><h1>Gruppen</h1></div>
+        <button class="icon-btn" data-action="new-group" aria-label="Neue Gruppe">＋</button>
+      </header>
+      <div style="margin-top:10px">
+        ${a.length?a.map(n=>o`<article class="card plain" data-action="open-group" data-id="${n.id}">
+                <div class="group-card">
+                  <div class="group-emoji">${n.emoji??"👥"}</div>
+                  <div class="grow"><h3>${n.name}</h3>
+                    <div class="row" style="gap:8px;justify-content:flex-start">${Oe(n.members,5)}<span class="muted" style="font-size:14px;flex:none">${n.members.length} ${n.members.length===1?"Person":"Leute"}</span></div>
+                  </div>
+                  <button class="btn soft sm" data-action="invite" data-id="${n.id}">Einladen</button>
+                </div></article>`):ae("👥","Noch keine Gruppe","Gründe eure erste Gruppe – z. B. „Berlin Crew“ oder „Tennis“ – und lade Freunde per Link ein.")}
+        <button class="btn ghost block lg" data-action="new-group" style="margin-top:8px">+ Neue Gruppe</button>
+      </div>`,actions:{"new-group":Yt,"open-group":n=>y(`/groups/${n.dataset.id}`),invite:n=>ut(a.find(i=>i.id===n.dataset.id))}}}async function Jt({id:e},t){let[{group:a},{posts:n}]=await Promise.all([f.group(e),f.posts({groupId:e})]);Z(n);let i=t.created;return{html:o`
+      <header class="topbar compact">
+        <button class="icon-btn" data-action="to-groups" aria-label="Zurück">←</button>
+        <span style="flex:1"></span>
+      </header>
+      <div class="center" style="padding:6px 0 4px">
+        <div style="font-size:56px">${a.emoji??"👥"}</div>
+        <h1 style="margin:8px 0 4px;font-size:28px">${a.name}</h1>
+        <div class="muted">${a.members.length} ${a.members.length===1?"Person":"Leute"}</div>
+      </div>
+
+      <div class="banner tone-activity" style="margin-top:18px">
+        <h3>${i?"🎉 Gruppe steht! Jetzt Freunde einladen":"Freunde einladen"}</h3>
+        <p>Wer den Link öffnet, kann der Gruppe direkt beitreten.</p>
+        <div class="actions" style="margin:0">
+          <a class="btn whatsapp" href="${Ee(pt(a))}" target="_blank" rel="noopener">💬 WhatsApp</a>
+          <button class="btn ghost" data-action="invite">Mehr…</button>
+        </div>
+      </div>
+
+      <section class="section"><h2 class="section-title"><span>Mitglieder</span></h2>
+        <div class="list">${a.members.map(s=>o`<div class="list-item">${C(s,"md")}<div class="grow"><div class="title">${s.id===u.user.id?`${s.name} (du)`:s.name}</div></div>
+            ${s.role==="admin"?o`<span class="tag">Admin</span>`:""}</div>`)}</div>
+      </section>
+
+      <section class="section"><h2 class="section-title"><span>Was geht in der Gruppe</span></h2>
+        ${n.length?n.map(Te):o`<p class="hint">Noch nichts geplant.</p>`}
+      </section>
+
+      <button class="btn danger block" data-action="leave" style="margin-top:28px">Gruppe verlassen</button>`,actions:{"to-groups":()=>y("/groups"),invite:()=>ut(a),leave:async()=>{await Be({title:`„${a.name}“ verlassen?`,confirmLabel:"Verlassen"})&&(await f.leaveGroup(a.id),await u.refresh(),A("Gruppe verlassen"),y("/groups",{replace:!0}))}}}}var Ba=["😎","🌻","💪","🚲","🎸","🧗","🎲","🎬","🐻","🦊","🐼","🌈","⚡","🍕","🎾","☕"];function Oa(){let e=u.user,t={emoji:e.emoji,color:e.color};V(o`<h2>Profil bearbeiten</h2>
+      <form data-submit="save-profile" class="form">
+        <input class="input big" name="name" value="${e.name}" maxlength="40" autocomplete="name" required>
+        <div><span class="label">Emoji</span><div class="emoji-pick">${Ba.map(a=>o`<button type="button" class="${a===e.emoji?"on":""}" data-action="pick-emoji" data-emoji="${a}">${a}</button>`)}</div></div>
+        <div><span class="label">Farbe</span><div class="color-pick">${he.map(a=>o`<button type="button" class="${a===e.color?"on":""}" style="--c:${a}" data-action="pick-color" data-color="${a}" aria-label="Farbe ${a}"></button>`)}</div></div>
+        <button class="btn dark block lg" type="submit">Speichern</button>
+      </form>`,{"pick-emoji":a=>{t.emoji=a.dataset.emoji,se(".emoji-pick button").forEach(n=>n.classList.toggle("on",n===a))},"pick-color":a=>{t.color=a.dataset.color,se(".color-pick button").forEach(n=>n.classList.toggle("on",n===a))},"save-profile":async a=>{u.apply(await f.updateMe({name:a.name.value,...t})),M(),A("Gespeichert"),y("/profile",{replace:!0})}})}async function $t(){let{posts:e}=await f.posts();Z(e);let t=e.filter(s=>s.isMine||s.myStatus===N[s.type]||s.myStatus==="maybe"),a=u.user,n=matchMedia("(display-mode: standalone)").matches||navigator.standalone,i=/iphone|ipad|ipod/i.test(navigator.userAgent);return{html:o`
+      <div class="profile-head">
+        ${C(a,"lg")}
+        <h1>${a.name}</h1>
+        <div class="muted">${a.email??""}</div>
+        <button class="btn ghost sm" data-action="edit" style="margin-top:12px">Bearbeiten</button>
+      </div>
+
+      <section class="section"><h2 class="section-title"><span>Meine Pläne</span><span>${t.length}</span></h2>
+        ${t.length?t.map(Te):o`<p class="hint">Noch nichts geplant. Tipp auf ＋ und leg los.</p>`}
+      </section>
+
+      ${n?"":o`<section class="section"><div class="install-tip">📲 <strong>Als App installieren:</strong>
+            ${i?"In Safari auf „Teilen“ und dann „Zum Home-Bildschirm“ tippen.":"Im Browser-Menü „App installieren“ bzw. „Zum Startbildschirm hinzufügen“ wählen."}</div></section>`}
+
+      <section class="section stack">
+        ${a.isDemo?o`<button class="btn soft block lg tone-activity" data-action="switch">🔁 Als andere Person ansehen</button>`:""}
+        ${u.app.webDemo?o`<button class="btn ghost block lg" data-action="reset-demo">↺ Demo zurücksetzen</button>`:""}
+        <button class="btn ghost block lg" data-action="logout">Abmelden</button>
+      </section>
+      <p class="center muted" style="font-size:13px;margin-top:24px">${u.app.name} · privat · Open Source</p>`,actions:{edit:Oa,switch:async()=>{await f.logout(),u.user=null,y("/login")},"reset-demo":async()=>{await f.resetDemo(),await u.refresh(),A("Demo zurückgesetzt"),y("/login",{replace:!0})},logout:async()=>{await f.logout(),await u.refresh(),y("/login",{replace:!0})}}}}var Ha={going:"ist dabei bei",maybe:"ist vielleicht dabei bei",free:"ist auch frei",helping:"hilft dir bei",accepting:"nimmt dein Angebot an:"};function za(e){let t=e.actor?_(e.actor.name):"Jemand",a=e.post?.title??"";switch(e.type){case"post_created":return e.post?.type==="help_request"?o`<strong>${t}</strong> braucht Hilfe: ${a}`:e.post?.type==="help_offer"?o`<strong>${t}</strong> bietet Hilfe an: ${a}`:o`<strong>${t}</strong> hat was vor: ${a}`;case"participation":return e.data.status==="free"?o`<strong>${t}</strong> ist auch frei 🙌`:o`<strong>${t}</strong> ${Ha[e.data.status]??"reagiert auf"} „${a}“`;case"comment":return o`<strong>${t}</strong> zu „${a}“: ${e.data.preview??""}`;case"suggestion":return o`<strong>${t}</strong> schlägt vor: ${e.data.preview??""}`;case"reminder":return o`⏰ Gleich geht's los: <strong>${a}</strong>`;default:return a}}async function wt(){let{notifications:e}=await f.notifications();return e.some(t=>!t.read)&&f.readNotifications().then(()=>{u.unread=0,ze()}),{html:o`
+      <header class="topbar compact"><button class="icon-btn" data-action="back" aria-label="Zurück">←</button><h1>Neuigkeiten</h1></header>
+      ${e.length?o`<div class="list" style="margin-top:8px">${e.map(t=>o`<a class="notif ${t.read?"":"unread"}" href="${t.postId?`#/post/${t.postId}`:"#/"}">
+              ${t.actor?C(t.actor,"md"):o`<span class="avatar md" style="--c:var(--surface-2)">${t.post?.emoji??"🔔"}</span>`}
+              <div class="n-text">${za(t)}<div class="n-time">${He(t.createdAt)}</div></div>
+              ${t.post?.emoji?o`<span style="font-size:22px">${t.post.emoji}</span>`:""}
+            </a>`)}</div>`:ae("🔔","Alles ruhig","Hier siehst du, wenn Freunde mitmachen, helfen oder kommentieren.")}`}}function ge(e,{submitLabel:t}={}){let a=e==="register";return o`<form class="form" data-submit="auth" data-mode="${e}" style="gap:12px">
+      ${a?o`<input class="input" name="name" placeholder="Dein Vorname" autocomplete="given-name" maxlength="40" required>`:""}
+      <input class="input" name="email" type="email" placeholder="E-Mail" autocomplete="email" required>
+      <input class="input" name="password" type="password" placeholder="${a?"Passwort (mind. 6 Zeichen)":"Passwort"}"
+        autocomplete="${a?"new-password":"current-password"}" minlength="${a?6:1}" required>
+      <button class="btn dark block lg" type="submit">${t??(a?"Konto erstellen":"Einloggen")}</button>
+      <button type="button" class="link-btn" data-action="toggle-mode" style="color:var(--muted)">
+        ${a?"Schon ein Konto? Einloggen":"Neu hier? Konto erstellen"}</button>
+    </form>`}async function St(e,t={}){let a=Object.fromEntries(new FormData(e)),n=e.dataset.mode==="register"?await f.register({...a,...t}):await f.login(a.email,a.password);u.apply(n)}function Xt(){if(u.user)return y(Fe(),{replace:!0});let e="login";return{html:o`
+    <div class="welcome">
+      <div class="logo-big">🤙</div>
+      <h1>${u.app.name}</h1>
+      <p class="tagline">Weniger Hin und Her im Gruppenchat.<br>Mehr Zeit mit Freunden.</p>
+      <div class="pillars">
+        <div class="pillar tone-time"><span class="p-emoji">🕐</span>Wer hat wann Zeit?</div>
+        <div class="pillar tone-activity"><span class="p-emoji">🎯</span>Wer hat worauf Bock?</div>
+        <div class="pillar tone-help"><span class="p-emoji">🤝</span>Wer braucht Hilfe?</div>
+      </div>
+      ${u.app.demoMode&&u.demoUsers.length?o`<span class="label">Demo ansehen als …</span>
+          <div class="demo-grid">${u.demoUsers.map(a=>o`<button data-action="demo" data-id="${a.id}">${C(a,"md")}${a.name}</button>`)}</div>
+          <div class="divider">oder mit E-Mail</div>`:""}
+      <div id="auth-box">${ge(e)}</div>
+      ${u.app.openSignup?"":o`<p class="hint center" style="margin-top:16px">Neu hier? Am einfachsten über einen Einladungslink von deinen Freunden.</p>`}
+    </div>`,actions:{demo:async a=>{u.apply(await f.demoLogin(a.dataset.id)),y(Fe(),{replace:!0})},"toggle-mode":()=>{e=e==="login"?"register":"login",document.getElementById("auth-box").innerHTML=String(ge(e))},auth:async a=>{await St(a),y(Fe(),{replace:!0})}}}}async function Qt({code:e}){let{invite:t,isMember:a}=await f.invite(e),n=t.inviter?.name??"Jemand",i="register",s=async()=>{await u.refresh(),A(`Willkommen in ${t.name} 🎉`),y("/",{replace:!0})},c=o`<div class="welcome center" style="padding-top:4dvh">
+      <div class="logo-big">${t.emoji??"👥"}</div>
+      <p class="muted" style="margin:14px 0 0">${n} lädt dich ein</p>
+      <h1 style="font-size:34px;margin-top:4px">${t.name}</h1>
+      <p class="tagline" style="font-size:16px">${t.memberCount} ${t.memberCount===1?"Person ist":"Leute sind"} schon dabei. Sieh, wer wann Zeit hat, was geht und wo jemand Hilfe braucht.</p>
+    </div>`,d;return u.user&&a?d=o`<p class="center">Du bist schon in dieser Gruppe 🙂</p><a class="btn dark block lg" href="#/">Zum Feed</a>`:u.user?d=o`<button class="btn dark block lg" data-action="join">Gruppe beitreten</button>
+      <p class="hint center">Angemeldet als ${u.user.name}</p>`:d=o`<div id="auth-box">${ge(i,{submitLabel:"Beitreten"})}</div>`,{html:o`${c}<div style="margin-top:8px">${d}</div>`,actions:{join:async()=>{await f.acceptInvite(e),await s()},"toggle-mode":()=>{i=i==="login"?"register":"login",document.getElementById("auth-box").innerHTML=String(ge(i,{submitLabel:i==="register"?"Beitreten":"Einloggen & beitreten"}))},auth:async l=>{await St(l,{inviteCode:e}),l.dataset.mode==="login"&&await f.acceptInvite(e),await s()}}}}var qe={activity:"Bin dabei",availability:"Bin auch frei",help_request:"Ich helfe",help_offer:"Nehm ich gern"},Ga={going:["ist auch dabei","sind auch dabei"],free:["ist auch frei","sind auch frei"],helping:["hilft mit","helfen mit"],accepting:["ist interessiert","sind interessiert"]};async function ea({code:e},t){let{preview:a,postId:n}=await f.share(e);if(u.user){if(t.join&&!a.cancelled){let{post:g}=await f.joinShare(e);return A(g.isMine?"Das ist dein Eintrag 🙂":`${qe[a.type]} – eingetragen 🙌`),y(`/post/${g.id}`,{replace:!0})}if(n)return y(`/post/${n}`,{replace:!0})}let i=B[a.type],[s,c]=Ga[N[a.type]],d=a.positiveNames.length?`${Pe(a.positiveNames,3)} ${a.positiveNames.length===1?s:c}`:"",l="register",m=async()=>{let{post:g}=await f.joinShare(e);A("Eingetragen 🙌"),y(`/post/${g.id}`,{replace:!0})};return{html:o`
+      <div class="${oe(a.type)}" style="padding-top:12px">
+        <section class="hero">
+          <span class="kicker" style="background:var(--surface)">${i.label}</span>
+          <div class="emoji">${a.emoji??i.emoji}</div>
+          <h1>${a.type==="availability"?`${a.author.name} hat Zeit`:a.title}</h1>
+          <div class="when">${pe(a.startsAt,a.endsAt)}</div>
+          ${a.location?o`<div class="meta-line">📍 ${a.location}</div>`:""}
+          ${a.description?o`<p class="desc">„${a.description}“</p>`:""}
+          <p class="desc"><strong>${a.type==="activity"?`${a.author.name} ist dabei.`:`von ${a.author.name}`}</strong>${d?o`<br>${d}`:""}</p>
+        </section>
+        ${a.cancelled?o`<p class="center" style="margin-top:20px">Dieser Eintrag wurde abgesagt 🙈</p>`:u.user?o`<button class="btn block lg" data-action="join" style="margin-top:16px">${qe[a.type]}</button>`:o`<p class="center muted" style="margin:20px 0 12px">Kurz anmelden, damit ${a.author.name} weiß, wer kommt:</p>
+                <div id="auth-box">${ge(l,{submitLabel:qe[a.type]})}</div>`}
+      </div>`,actions:{join:m,"toggle-mode":()=>{l=l==="login"?"register":"login",document.getElementById("auth-box").innerHTML=String(ge(l,{submitLabel:l==="register"?qe[a.type]:"Einloggen"}))},auth:async g=>{await St(g,{shareCode:e}),await m()}}}}var ta=[["/",mt,{tab:"home"}],["/week",ft,{tab:"week"}],["/new",Zt,{nav:!1}],["/new/:kind",yt,{nav:!1}],["/post/:id",gt,{nav:!1}],["/groups",vt,{tab:"groups"}],["/groups/:id",Jt,{tab:"groups"}],["/profile",$t,{tab:"profile"}],["/notifications",wt,{tab:"home"}],["/login",Xt,{public:!0,nav:!1}],["/invite/:code",Qt,{public:!0,nav:!1}],["/e/:code",ea,{public:!0,nav:!1}]].map(([e,t,a])=>{let n=[];return{regex:new RegExp("^"+e.replace(/:(\w+)/g,(s,c)=>(n.push(c),"([^/]+)"))+"/?$"),keys:n,view:t,...a}}),De=document.getElementById("view"),kt=document.getElementById("tabbar"),be={actions:{},path:null};async function Ze({keepScroll:e=!1}={}){let{path:t,query:a}=We(),n=ta.find(l=>l.regex.test(t))??ta[0],i={},s=n.regex.exec(t);if(s&&n.keys.forEach((l,m)=>i[l]=decodeURIComponent(s[m+1])),!n.public&&!u.user){try{sessionStorage.setItem("bock:next",`${t}${location.hash.includes("?")?"?"+location.hash.split("?")[1]:""}`)}catch{}return y("/login",{replace:!0})}let c=window.scrollY,d=be.path===t;try{let l=await n.view(i,a);if(We().path!==t||!l)return;be={...l,path:t,route:n},De.className=`view ${n.nav===!1?"no-nav":""}`,De.innerHTML=String(l.html),aa(n),l.mount?.(De),window.scrollTo(0,e&&d?c:0)}catch(l){if(l instanceof ce&&l.status===401)return u.user=null,y("/login",{replace:!0});De.innerHTML=String(o`<div class="topbar compact"><a class="icon-btn" href="#/">←</a></div>
+      <div class="empty"><div class="e-emoji">🙈</div><h3>Ups</h3><p>${l.message}</p>
+      <a class="btn dark" href="#/">Zum Feed</a></div>`),aa(n)}}Wt(Ze);function aa(e){if(kt.hidden=e.nav===!1||!u.user,kt.hidden)return;let t=(a,n,i,s)=>o`<a class="tab ${e.tab===a?"on":""}" href="${n}" data-action="tab" data-tab="${a}">
+      <span class="t-icon">${i}</span>${s}</a>`;kt.innerHTML=String(o`
+    ${t("home","#/","🏠","Home")}
+    ${t("week","#/week","🗓️","Woche")}
+    <div class="tab-plus"><button data-action="plus" aria-label="Neuer Eintrag">+</button></div>
+    ${t("groups","#/groups","👥","Gruppen")}
+    ${t("profile","#/profile","🙂","Profil")}`)}var Ua={going:"Du bist dabei 🙌",maybe:"Als „Vielleicht“ markiert",declined:"Abgesagt",free:"Eingetragen – ihr seid beide frei 🙌",helping:"Danke, dass du hilfst 💛",accepting:"Angefragt 👍"},Va={plus:()=>{me(),V(Ge())},new:e=>{M(),y(`/new/${e.dataset.kind}${e.dataset.query?`?${e.dataset.query}`:""}`)},tab:(e,t)=>{be.route?.tab===e.dataset.tab&&We().path===e.getAttribute("href").slice(1)&&(t.preventDefault(),window.scrollTo({top:0,behavior:"smooth"}),Ze({keepScroll:!1}))},"open-post":e=>y(`/post/${e.dataset.id}`),participate:async e=>{me(),await f.participate(e.dataset.id,e.dataset.status),A(Ua[e.dataset.status]),await J()},unparticipate:async e=>{let t=e.dataset.id,a=Ie.get(t)?.myStatus;await f.unparticipate(t),A("Ausgetragen",{action:a?"Rückgängig":null,onAction:async()=>{await f.participate(t,a),J()}}),await J()},"share-post":e=>{let t=Ie.get(e.dataset.id);t&&Ue(t)},suggest:e=>{let t=Ie.get(e.dataset.id);t&&Ft(t)},back:()=>history.length>1?history.back():y("/")};async function na(e,t,a){if(t.dataset.busy)return;t.dataset.busy="1";let n=t.tagName==="BUTTON";n&&(t.disabled=!0);try{await e(t,a)}catch(i){A(i.message??"Fehler"),i instanceof ce&&i.status===401&&y("/login")}finally{delete t.dataset.busy,n&&t.isConnected&&(t.disabled=!1)}}document.addEventListener("click",e=>{if(e.target.closest("[data-sheet-close]")&&!e.target.closest("[data-action]"))return M();let t=e.target.closest("[data-action]");if(!t)return;let a=t.dataset.action,i=!!t.closest("#sheet-root")&&st()?.[a]||be.actions?.[a]||Va[a];i&&(t.tagName!=="A"&&e.preventDefault(),e.stopPropagation(),na(i,t,e))});document.addEventListener("submit",e=>{let t=e.target,a=t.dataset.submit;if(!a)return;e.preventDefault();let i=!!t.closest("#sheet-root")&&st()?.[a]||be.actions?.[a];i&&na(i,t,e)});document.addEventListener("keydown",e=>{e.key==="Escape"&&ot()&&M()});window.addEventListener("hashchange",()=>{M(),Ze()});async function ia(){if(!(document.hidden||!u.user))try{let{unread:e}=await f.me();u.unread=e,ze()}catch{}}setInterval(ia,3e4);document.addEventListener("visibilitychange",()=>{document.hidden||!u.user||(ia(),["home","week"].includes(be.route?.tab)&&!ot()&&J())});async function Wa(){try{await u.refresh()}catch(e){De.innerHTML=String(o`<div class="empty"><div class="e-emoji">📡</div><h3>Keine Verbindung</h3><p>${e.message}</p>
+      <button class="btn dark" onclick="location.reload()">Nochmal versuchen</button></div>`);return}await Ze(),"serviceWorker"in navigator&&location.protocol!=="file:"&&navigator.serviceWorker.register("/sw.js").catch(()=>{})}Wa();})();
+</script>
+</body>
+</html>

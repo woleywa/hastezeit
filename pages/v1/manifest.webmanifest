@@ -1,0 +1,49 @@
+{
+  "name": "Bock – Zeit mit Freunden",
+  "short_name": "Bock",
+  "description": "Wer hat Zeit? Wer hat Bock? Wer braucht Hilfe?",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f4ef",
+  "theme_color": "#f7f4ef",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ich habe Zeit",
+      "url": "./#/new/time"
+    },
+    {
+      "name": "Aktivität",
+      "url": "./#/new/activity"
+    },
+    {
+      "name": "Hilfe",
+      "url": "./#/new/help"
+    }
+  ]
+}

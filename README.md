@@ -38,8 +38,10 @@ testen, ohne etwas zu installieren. Jede:r Besucher:in hat dabei eine eigene Dem
 
 ### Web-Demo auf GitHub Pages
 
-Der Workflow `.github/workflows/pages.yml` baut bei jedem Push auf `main` die Demo (`dist/site/`) und
-veröffentlicht sie auf GitHub Pages. Einmalig nötig: **Settings → Pages → Source: „GitHub Actions“**.
+Der Workflow `.github/workflows/pages.yml` baut bei jedem Push auf `main` die Website (`npm run build:pages` →
+`dist/pages/`) und veröffentlicht sie auf GitHub Pages: Landingpage unter `/`, jede Version unter `/v1/`, `/v2/`, …
+Ältere Versionen liegen fertig gebaut in `pages/vN/`; die aktuelle wird aus dem Quellcode gebaut.
+Neue Version: aktuelle nach `pages/vN/` kopieren, `CURRENT` in `demo/build-pages.mjs` hochzählen, Karte in `pages/index.html` ergänzen. Einmalig nötig: **Settings → Pages → Source: „GitHub Actions“**.
 Bei einem kostenlosen GitHub-Account muss das Repo dafür öffentlich sein. Adresse danach: `https://woleywa.github.io/hastezeit/`.
 
 ## Development

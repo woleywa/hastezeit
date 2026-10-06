@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hastezeit</title>
+<meta name="description" content="Ihr tippt an, wann ihr Zeit habt. Hastezeit findet die Überschneidungen und macht daraus automatisch eine Runde.">
+<meta property="og:title" content="Haste Zeit?">
+<meta property="og:description" content="Ihr tippt an, wann ihr Zeit habt – wer zur gleichen Zeit kann, landet automatisch in einer Runde.">
+<meta property="og:image" content="v2/icons/og.png">
+<meta name="theme-color" content="#f7f4ef">
+<link rel="icon" href="v2/icons/icon.svg" type="image/svg+xml">
+<style>
+/* Layout: one centred column; hero with phone on the right (stacks on mobile); versions as a list of wide cards. */
+:root {
+  --bg: #f7f4ef; --surface: #ffffff; --ink: #1d1a22; --muted: #6c6676; --line: #e7e1d8;
+  --time: #0f9f6e; --time-soft: #e2f6ed; --activity: #6d4aff; --activity-soft: #eee9ff; --help: #f26b1d;
+  --phone: #1d1a22;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #151318; --surface: #211e26; --ink: #f4f1f8; --muted: #a7a0b2; --line: #34303b;
+    --time-soft: #133429; --activity-soft: #282042; --phone: #000; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #151318; --surface: #211e26; --ink: #f4f1f8; --muted: #a7a0b2; --line: #34303b;
+  --time-soft: #133429; --activity-soft: #282042; --phone: #000; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); line-height: 1.5; -webkit-text-size-adjust: 100%; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 20px; }
+a { color: inherit; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.08; margin: 0; letter-spacing: -0.02em; }
+
+header.top { display: flex; align-items: center; gap: 10px; padding-block: 18px; font-weight: 800; font-size: 18px; }
+header.top svg { width: 34px; height: 34px; }
+header.top nav { margin-left: auto; display: flex; gap: 18px; font-size: 15px; font-weight: 650; }
+header.top nav a { text-decoration: none; color: var(--muted); }
+
+.hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center; padding-block: 28px 56px; }
+.hero h1 { font-size: clamp(48px, 9vw, 92px); font-weight: 900; letter-spacing: -0.045em; }
+.hero h1 .q { color: var(--time); }
+.hero p.lead { font-size: clamp(18px, 2.2vw, 22px); color: var(--muted); max-width: 30ch; margin: 18px 0 28px; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 22px; border-radius: 16px;
+  font-weight: 800; font-size: 16px; text-decoration: none; border: 0; }
+.btn.primary { background: var(--time); color: #fff; }
+.btn.ghost { border: 1.5px solid var(--line); background: var(--surface); }
+.btn:focus-visible { outline: 3px solid var(--activity); outline-offset: 3px; }
+
+.phone { width: min(300px, 78vw); margin-inline: auto; border-radius: 42px; padding: 10px; background: var(--phone);
+  box-shadow: 0 30px 60px rgba(29, 26, 34, .18); }
+.phone img { display: block; width: 100%; border-radius: 33px; aspect-ratio: 390 / 664; object-fit: cover; object-position: top; max-width: 100%; }
+.hero .phone { transform: rotate(2.5deg); }
+
+.chat { background: var(--surface); border-radius: 24px; padding: 22px; border: 1px solid var(--line); max-width: 640px; margin: 0 auto 56px; }
+.chat .label { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+.msg { background: var(--bg); border-radius: 4px 16px 16px 16px; padding: 8px 12px; margin: 6px 0; width: fit-content; max-width: 90%; font-size: 15px; }
+.msg b { font-size: 13px; display: block; color: var(--muted); }
+.chat .verdict { margin: 14px 0 0; font-weight: 700; }
+
+section.how h2, section.versions h2 { font-size: clamp(30px, 4.5vw, 44px); font-weight: 900; margin-bottom: 26px; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; list-style: none; padding: 0; margin: 0 0 64px; counter-reset: step; }
+.steps li { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 22px; counter-increment: step; min-width: 0; }
+.steps li::before { content: counter(step); display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--time); color: #fff; font-weight: 900; margin-bottom: 12px; }
+.steps h3 { font-size: 20px; margin-bottom: 6px; }
+.steps p { margin: 0; color: var(--muted); }
+
+.version { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: center; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 28px; padding: 28px; margin-bottom: 20px; }
+.version .tag { display: inline-block; font-size: 12px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px; background: var(--activity-soft); color: var(--activity); margin-bottom: 10px; }
+.version.latest .tag { background: var(--time-soft); color: var(--time); }
+.version h3 { font-size: 28px; margin-bottom: 4px; }
+.version .path { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.version ul { padding-left: 20px; margin: 14px 0 20px; }
+.version li { margin: 4px 0; }
+.shots { display: flex; gap: 12px; }
+.shots .phone { width: 150px; border-radius: 26px; padding: 6px; box-shadow: 0 12px 30px rgba(29, 26, 34, .14); }
+.shots .phone img { border-radius: 21px; }
+.note { color: var(--muted); font-size: 14px; margin: 0; }
+
+footer { padding-block: 40px 56px; color: var(--muted); font-size: 14px; text-align: center; }
+
+@media (max-width: 820px) {
+  .hero { grid-template-columns: 1fr; padding-block: 8px 44px; }
+  .hero .phone { transform: none; }
+  .steps { grid-template-columns: 1fr; }
+  .version { grid-template-columns: 1fr; padding: 22px; }
+  .shots { justify-content: center; }
+  .shots .phone { width: min(150px, 42vw); }
+  header.top nav { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .btn { transition: transform .12s ease; } .btn:active { transform: scale(.97); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="116" fill="#1d1a22"/><circle cx="256" cy="196" r="100" fill="#6d4aff"/><circle cx="186" cy="316" r="100" fill="#0f9f6e" opacity=".92"/><circle cx="326" cy="316" r="100" fill="#f26b1d" opacity=".92"/></svg>
+    Hastezeit
+    <nav><a href="#so-gehts">So geht's</a><a href="#versionen">Versionen</a></nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h1>Haste Zeit<span class="q">?</span></h1>
+      <p class="lead">Ihr tippt an, wann ihr diese Woche könnt. Wer zur gleichen Zeit Zeit hat, landet automatisch in einer Runde.</p>
+      <div class="cta">
+        <a class="btn primary" href="v2/">Neueste Version ausprobieren</a>
+        <a class="btn ghost" href="#versionen">Alle Versionen</a>
+      </div>
+    </div>
+    <div class="phone"><img src="assets/v2-zeiten.jpg" alt="Hastezeit: Raster mit Tagen und Tageszeiten, markierte Zeiten und Runden mit Freunden" width="390" height="664"></div>
+  </section>
+
+  <div class="chat" aria-label="Typischer Gruppenchat">
+    <div class="label">Berlin Crew · WhatsApp</div>
+    <div class="msg"><b>Wolfgang</b>Wer hat diese Woche Zeit?</div>
+    <div class="msg"><b>Anna</b>Di oder Do Abend</div>
+    <div class="msg"><b>Max</b>Do kann ich nicht, Mi?</div>
+    <div class="msg"><b>Lisa</b>Mi bin ich weg. Nächste Woche?</div>
+    <p class="verdict">47 Nachrichten später trifft sich niemand. Dafür gibt es Hastezeit.</p>
+  </div>
+
+  <section class="how" id="so-gehts">
+    <h2>So geht's</h2>
+    <ol class="steps">
+      <li><h3>Zeiten antippen</h3><p>Vormittag, Nachmittag, Abend – für die nächsten Tage, so oft du willst. Dauert zehn Sekunden.</p></li>
+      <li><h3>Runde entsteht</h3><p>Hat jemand aus deiner Gruppe dieselbe Zeit, seid ihr automatisch eine Runde. Alle bekommen Bescheid.</p></li>
+      <li><h3>Plan fixieren</h3><p>Kurz im Runden-Chat abstimmen oder würfeln lassen, was ihr macht und wer organisiert.</p></li>
+    </ol>
+  </section>
+
+  <section class="versions" id="versionen">
+    <h2>Versionen</h2>
+
+    <article class="version latest">
+      <div>
+        <span class="tag">Neu · v2</span>
+        <h3>Zeiten & Runden</h3>
+        <div class="path">/v2/</div>
+        <ul>
+          <li>Zeiten im Wochenraster antippen, mehrmals pro Woche</li>
+          <li>Überschneidungen werden automatisch zu Runden pro Freundesgruppe</li>
+          <li>Runden-Chat, Ideen-Chips, 🎲 Würfel und „Plan fixieren“</li>
+          <li>Alles aus v1 ist weiterhin drin</li>
+        </ul>
+        <div class="cta"><a class="btn primary" href="v2/">v2 ausprobieren</a></div>
+      </div>
+      <div class="shots">
+        <div class="phone"><img src="assets/v2-zeiten.jpg" alt="v2: Zeiten-Raster" width="390" height="664" loading="lazy"></div>
+        <div class="phone"><img src="assets/v2-runde.jpg" alt="v2: Runde mit Chat und Würfel" width="390" height="664" loading="lazy"></div>
+      </div>
+    </article>
+
+    <article class="version">
+      <div>
+        <span class="tag">v1</span>
+        <h3>Feed: Zeit, Aktivität, Hilfe</h3>
+        <div class="path">/v1/</div>
+        <ul>
+          <li>Feed mit freien Zeiten, Aktivitäten und Hilfegesuchen</li>
+          <li>Eintrag in unter 20 Sekunden, mit Kurztext-Erkennung („Di 18-20 Tennis“)</li>
+          <li>Bin dabei / Vielleicht / Ich helfe, Kommentare, Wochenansicht</li>
+          <li>Teilen per WhatsApp</li>
+        </ul>
+        <div class="cta"><a class="btn ghost" href="v1/">v1 ausprobieren</a></div>
+      </div>
+      <div class="shots">
+        <div class="phone"><img src="assets/v1-feed.jpg" alt="v1: Feed" width="390" height="664" loading="lazy"></div>
+        <div class="phone"><img src="assets/v1-detail.jpg" alt="v1: Detailansicht einer Aktivität" width="390" height="664" loading="lazy"></div>
+      </div>
+    </article>
+
+    <p class="note">Die Versionen sind Demos mit Beispiel-Freunden: Tipp auf einen Namen und probier alles aus. Was du einträgst, bleibt nur in deinem Browser.</p>
+  </section>
+
+  <footer>Hastezeit · privat, nur für eure Gruppen · Open Source</footer>
+</div>
+</body>
+</html>

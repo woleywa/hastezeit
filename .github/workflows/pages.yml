@@ -1,6 +1,6 @@
-# Publishes the web demo (dist/site) to GitHub Pages on every push to main.
+# Publishes landing page + all demo versions (dist/pages) to GitHub Pages on every push to main.
 # One-time setup: Settings → Pages → Source: "GitHub Actions".
-name: Web-Demo auf GitHub Pages
+name: Website auf GitHub Pages
 
 on:
   push:
@@ -30,10 +30,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: npm run build:demo
+      - run: npm run build:pages
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/site
+          path: dist/pages
       - id: deployment
         uses: actions/deploy-pages@v4
